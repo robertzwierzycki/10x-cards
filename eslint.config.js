@@ -58,6 +58,9 @@ const reactConfig = tseslint.config({
 
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
+  {
+    ignores: ["src/pages/api-docs.astro"], // Inline scripts cause parser issues
+  },
   baseConfig,
   jsxA11yConfig,
   reactConfig,

@@ -5,9 +5,10 @@
 2. [Tech Stack](#tech-stack)
 3. [Getting Started Locally](#getting-started-locally)
 4. [Available Scripts](#available-scripts)
-5. [Project Scope (MVP)](#project-scope-mvp)
-6. [Project Status](#project-status)
-7. [License](#license)
+5. [API Documentation](#api-documentation)
+6. [Project Scope (MVP)](#project-scope-mvp)
+7. [Project Status](#project-status)
+8. [License](#license)
 
 ## Project Description
 
@@ -86,6 +87,61 @@ The following scripts are available in `package.json`:
 | `lint`     | Lints the codebase using ESLint.         |
 | `lint:fix` | Lints and automatically fixes issues.    |
 | `format`   | Formats the code using Prettier.         |
+
+## API Documentation
+
+10xCards provides a comprehensive REST API for all operations. Complete documentation is available in multiple formats:
+
+### 📚 Interactive Documentation (Swagger UI)
+
+Visit the interactive API documentation at:
+```
+http://localhost:3000/api-docs
+```
+
+The Swagger UI interface allows you to:
+- Explore all available endpoints
+- View request/response schemas
+- Test endpoints directly from the browser
+- See example requests in multiple formats
+
+### 📖 OpenAPI Specification
+
+The OpenAPI 3.0 specification is available at:
+- **File**: `docs/api/openapi.yaml`
+- **Live**: `http://localhost:3000/openapi.yaml`
+
+You can import this spec into tools like Postman, Insomnia, or any OpenAPI-compatible client.
+
+### 💻 Code Examples
+
+Detailed code examples in multiple languages are available in:
+```
+docs/api/README.md
+```
+
+Includes examples for:
+- cURL
+- JavaScript/TypeScript (fetch & axios)
+- React hooks
+- Python
+
+### 🔑 Authentication
+
+All API endpoints require JWT authentication:
+
+1. Obtain a JWT token by authenticating with Supabase
+2. Include the token in requests: `Authorization: Bearer <token>`
+3. Tokens are automatically included when using the Swagger UI
+
+### 📋 Currently Implemented Endpoints
+
+| Method | Endpoint            | Description                           |
+|--------|---------------------|---------------------------------------|
+| GET    | `/api/decks/:id`    | Get deck with all flashcards          |
+| GET    | `/api/health`       | Check API health status               |
+
+**Note**: Additional endpoints are being implemented according to the API plan in `docs/api/openapi.yaml`.
 
 ## Project Scope (MVP)
 

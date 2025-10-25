@@ -1,0 +1,226 @@
+---
+/**
+ * API Documentation Page
+ *
+ * Serves Swagger UI for interactive API documentation
+ */
+
+// This page is static and doesn't need server-side rendering
+export const prerender = true;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>10xCards API Documentation</title>
+    <meta name="description" content="Interactive API documentation for 10xCards REST API" />
+
+    <!-- Swagger UI CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/swagger-ui.css" />
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #swagger-ui {
+        max-width: 1460px;
+        margin: 0 auto;
+      }
+
+      /* Custom branding */
+      .topbar {
+        display: none; /* Hide Swagger UI default topbar */
+      }
+
+      /* Custom header */
+      .custom-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .custom-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .custom-header p {
+        margin: 0.5rem 0 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .custom-header .links {
+        margin-top: 1rem;
+      }
+
+      .custom-header a {
+        color: white;
+        text-decoration: none;
+        margin: 0 1rem;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+        transition: border-color 0.2s;
+      }
+
+      .custom-header a:hover {
+        border-bottom-color: white;
+      }
+
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        .swagger-ui .topbar {
+          background-color: #1f2937;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Custom Header -->
+    <div class="custom-header">
+      <h1>🚀 10xCards API</h1>
+      <p>Interactive REST API Documentation</p>
+      <div class="links">
+        <a href="/" target="_blank">← Back to App</a>
+        <a href="https://github.com/yourorg/10xcards" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="/docs/api/README.md" target="_blank">Code Examples</a>
+      </div>
+    </div>
+
+    <!-- Swagger UI Container -->
+    <div id="swagger-ui"></div>
+
+    <!-- Swagger UI Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js"></script>
+
+    <!-- Initialize Swagger UI -->
+    <script is:inline>
+      window.onload = function () {
+        // Determine the base URL dynamically
+        const baseUrl = window.location.origin;
+
+        window.ui = SwaggerUIBundle({
+          // URL to OpenAPI spec - served as static file
+          url: "/openapi.yaml",
+
+          // DOM element to mount Swagger UI
+          dom_id: "#swagger-ui",
+
+          // Presets
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+
+          // Layout
+          layout: "BaseLayout",
+
+          // Deep linking
+          deepLinking: true,
+
+          // Display operation ID
+          displayOperationId: false,
+
+          // Display request duration
+          displayRequestDuration: true,
+
+          // Default models expand depth
+          defaultModelsExpandDepth: 1,
+
+          // Default model expand depth
+          defaultModelExpandDepth: 1,
+
+          // Show extensions
+          showExtensions: false,
+
+          // Show common extensions
+          showCommonExtensions: false,
+
+          // Try it out enabled by default
+          tryItOutEnabled: true,
+
+          // Request interceptor to add token from localStorage
+          requestInterceptor: (request) => {
+            // Try to get token from localStorage
+            const token = localStorage.getItem("supabase.auth.token");
+            if (token) {
+              try {
+                const parsed = JSON.parse(token);
+                if (parsed.access_token) {
+                  request.headers.Authorization = `Bearer ${parsed.access_token}`;
+                }
+              } catch {
+                // Ignore parsing errors
+              }
+            }
+            return request;
+          },
+
+          // Persist authorization
+          persistAuthorization: true,
+
+          // Syntax highlight theme
+          syntaxHighlight: {
+            activate: true,
+            theme: "monokai",
+          },
+
+          // Supported submit methods
+          supportedSubmitMethods: ["get", "post", "put", "delete", "patch"],
+
+          // Validator URL (null to disable)
+          validatorUrl: null,
+
+          // OAuth2 redirect URL
+          oauth2RedirectUrl: `${baseUrl}/oauth2-redirect.html`,
+        });
+      };
+    </script>
+
+    <!-- Info message about authentication -->
+    <script is:inline>
+      // Show authentication notice after Swagger UI loads
+      setTimeout(() => {
+        const notice = document.createElement("div");
+        notice.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: #3b82f6;
+          color: white;
+          padding: 16px 24px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          font-family: system-ui, -apple-system, sans-serif;
+          font-size: 14px;
+          max-width: 400px;
+          z-index: 9999;
+          cursor: pointer;
+        `;
+        notice.innerHTML = `
+          <strong>🔐 Authentication Required</strong><br>
+          Click "Authorize" above and enter your JWT token to test endpoints.<br>
+          <small style="opacity: 0.8; margin-top: 8px; display: block;">
+            Click to dismiss
+          </small>
+        `;
+        notice.onclick = () => notice.remove();
+        document.body.appendChild(notice);
+
+        // Auto-dismiss after 8 seconds
+        setTimeout(() => {
+          if (notice.parentNode) {
+            notice.style.transition = "opacity 0.3s";
+            notice.style.opacity = "0";
+            setTimeout(() => notice.remove(), 300);
+          }
+        }, 8000);
+      }, 1000);
+    </script>
+  </body>
+</html>
