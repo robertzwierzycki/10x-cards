@@ -112,3 +112,28 @@ export const deleteDeckParamsSchema = z.object({
  * Type inference for deleteDeckParams validation
  */
 export type DeleteDeckParams = z.infer<typeof deleteDeckParamsSchema>;
+
+// ============================================
+// Frontend Form Schemas
+// ============================================
+
+/**
+ * Schema for deck name validation in forms (create and edit)
+ * Used in: CreateDeckDialog, EditDeckDialog
+ *
+ * - Required: minimum 1 character after trim
+ * - Maximum: 255 characters
+ * - Auto-trims whitespace
+ */
+export const deckNameFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Nazwa talii jest wymagana")
+    .max(255, "Nazwa talii nie może przekraczać 255 znaków")
+    .transform((val) => val.trim()),
+});
+
+/**
+ * Type inference from deck name form schema
+ */
+export type DeckNameFormData = z.infer<typeof deckNameFormSchema>;

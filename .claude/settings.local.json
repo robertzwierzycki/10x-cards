@@ -1,10 +1,37 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir:*)",
-      "Bash(git add:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run lint:fix:*)",
+      "Bash(npx swagger-cli:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run dev:*)",
+      "Bash(npx supabase:*)",
+      "Bash(docker ps:*)",
+      "Bash(ForEach-Object { docker rm -f $_ })",
+      "Bash(xargs:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker restart:*)",
+      "Bash(docker logs:*)"
     ],
     "deny": [],
     "ask": []
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -c '[Console]::Beep(800,300)'"
+          }
+        ]
+      }
+    ]
   }
 }

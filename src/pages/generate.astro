@@ -1,0 +1,29 @@
+---
+import ProtectedLayout from "@/layouts/ProtectedLayout.astro";
+
+// This page is protected - middleware will check authentication
+// User data will be available via locals.user
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+---
+
+<ProtectedLayout title="Generator AI">
+  <div id="ai-generator-root" data-user-id={user.id}></div>
+</ProtectedLayout>
+
+<script>
+  // Dynamic import of React component
+  import { createRoot } from "react-dom/client";
+  import AIGeneratorView from "@/components/generator/AIGeneratorView";
+  import { createElement } from "react";
+
+  const rootElement = document.getElementById("ai-generator-root");
+  if (rootElement) {
+    const userId = rootElement.dataset.userId;
+    const root = createRoot(rootElement);
+    root.render(createElement(AIGeneratorView, { userId: userId || "" }));
+  }
+</script>

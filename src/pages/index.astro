@@ -1,8 +1,15 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
+/**
+ * Dashboard Page (Home)
+ * Main view after login - displays user's deck list
+ */
+import ProtectedLayout from "../layouts/ProtectedLayout.astro";
+import { DashboardView } from "../components/dashboard/DashboardView";
+
+// Auth check is handled by ProtectedLayout
+// User object available via Astro.locals.user
 ---
 
-<Layout>
-  <Welcome />
-</Layout>
+<ProtectedLayout title="Dashboard - 10xCards">
+  <DashboardView client:load />
+</ProtectedLayout>

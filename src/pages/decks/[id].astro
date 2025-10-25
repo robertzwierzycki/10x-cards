@@ -1,0 +1,27 @@
+---
+/**
+ * Deck Detail Page
+ * Dynamic route for viewing and managing individual deck
+ * Path: /decks/[id]
+ */
+
+import ProtectedLayout from "@/layouts/ProtectedLayout.astro";
+import { DeckDetailContent } from "@/components/deck-detail/DeckDetailContent";
+
+// SSR mode - dynamic rendering
+export const prerender = false;
+
+// Get deck ID from URL params
+const { id } = Astro.params;
+
+// Validate UUID format (basic check)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+if (!id || !uuidRegex.test(id)) {
+  return Astro.redirect("/");
+}
+---
+
+<ProtectedLayout title="Deck Details - 10xCards">
+  <DeckDetailContent client:load deckId={id} />
+</ProtectedLayout>

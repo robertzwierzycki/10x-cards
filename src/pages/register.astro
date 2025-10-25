@@ -1,0 +1,21 @@
+---
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import RegisterForm from "@/components/auth/RegisterForm";
+import { Toaster } from "sonner";
+
+// Check if user is already logged in
+const user = Astro.locals.user;
+
+// Redirect to dashboard if already authenticated
+if (user) {
+  return Astro.redirect("/");
+}
+---
+
+<PublicLayout
+  title="Zarejestruj się - 10xCards"
+  description="Utwórz nowe konto w 10xCards i zacznij generować fiszki AI"
+>
+  <RegisterForm client:load />
+  <Toaster client:load position="top-center" />
+</PublicLayout>

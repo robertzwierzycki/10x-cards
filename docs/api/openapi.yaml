@@ -1,0 +1,449 @@
+openapi: 3.0.3
+info:
+  title: 10xCards API
+  description: |
+    REST API for 10xCards - AI-powered flashcard generation application.
+
+    This API provides endpoints for:
+    - Deck management (CRUD operations)
+    - Flashcard management (manual and AI-generated)
+    - Spaced repetition study sessions
+    - User profile management
+    - Metrics and analytics
+
+    ## Authentication
+    All endpoints require JWT authentication via Supabase Auth.
+    Include the token in the `Authorization` header: `Bearer <token>`
+
+    ## Rate Limiting
+    - AI Generation: 10 requests per minute per user
+    - Other endpoints: 100 requests per minute per user
+
+    ## Date Format
+    All timestamps use ISO 8601 format (e.g., `2024-01-01T00:00:00Z`)
+  version: 1.0.0
+  contact:
+    name: 10xCards Support
+    email: support@10xcards.app
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.10xcards.app
+    description: Production server
+
+tags:
+  - name: Decks
+    description: Deck management operations
+  - name: Flashcards
+    description: Flashcard CRUD operations
+  - name: AI Generation
+    description: AI-powered flashcard generation
+  - name: Study
+    description: Spaced repetition study mode
+  - name: Metrics
+    description: Analytics and KSM tracking
+  - name: Profile
+    description: User profile management
+  - name: System
+    description: Health checks and system status
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase JWT token from authentication
+
+  schemas:
+    # ============================================
+    # Common Schemas
+    # ============================================
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Validation failed"
+        details:
+          type: array
+          items:
+            type: object
+          description: Additional error details (e.g., validation errors)
+        retry_after:
+          type: integer
+          description: Seconds to wait before retrying (for rate limit errors)
+          example: 60
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - total_pages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+          example: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 200
+          description: Items per page
+          example: 20
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items
+          example: 45
+        total_pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+          example: 3
+
+    # ============================================
+    # Deck Schemas
+    # ============================================
+
+    Deck:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+        - updated_at
+        - flashcard_count
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the deck
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the deck
+          example: "JavaScript Basics"
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of creation
+          example: "2024-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of last update
+          example: "2024-01-15T10:30:00Z"
+        flashcard_count:
+          type: integer
+          minimum: 0
+          description: Number of flashcards in the deck
+          example: 25
+
+    DeckWithFlashcards:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+        - updated_at
+        - flashcards
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the deck
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the deck
+          example: "JavaScript Basics"
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of creation
+          example: "2024-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of last update
+          example: "2024-01-15T10:30:00Z"
+        flashcards:
+          type: array
+          description: All flashcards in the deck
+          items:
+            $ref: "#/components/schemas/Flashcard"
+
+    # ============================================
+    # Flashcard Schemas
+    # ============================================
+
+    Flashcard:
+      type: object
+      required:
+        - id
+        - deck_id
+        - front
+        - back
+        - is_ai_generated
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the flashcard
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        deck_id:
+          type: string
+          format: uuid
+          description: ID of the parent deck
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        front:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: Front side of the flashcard (question)
+          example: "What is a closure?"
+        back:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: Back side of the flashcard (answer)
+          example: "A function that has access to outer scope variables"
+        is_ai_generated:
+          type: boolean
+          description: Whether this flashcard was generated by AI
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of creation
+          example: "2024-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of last update
+          example: "2024-01-01T00:00:00Z"
+
+  responses:
+    # ============================================
+    # Common Error Responses
+    # ============================================
+
+    BadRequest:
+      description: Bad Request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            invalidUUID:
+              summary: Invalid UUID format
+              value:
+                error: "Validation failed"
+                details:
+                  - code: "invalid_string"
+                    message: "Invalid deck ID format"
+                    path: ["id"]
+
+    Unauthorized:
+      description: Unauthorized - Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Authentication required"
+
+    Forbidden:
+      description: Forbidden - Valid authentication but insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Access denied"
+
+    NotFound:
+      description: Not Found - Requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Deck not found"
+
+    RateLimitExceeded:
+      description: Too Many Requests - Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds to wait before retrying
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Rate limit exceeded"
+            retry_after: 60
+
+    InternalServerError:
+      description: Internal Server Error - Something went wrong on the server
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Failed to retrieve deck"
+
+# ============================================
+# API Endpoints
+# ============================================
+
+paths:
+  /api/decks/{id}:
+    get:
+      tags:
+        - Decks
+      summary: Get deck with flashcards
+      description: |
+        Retrieves detailed information about a specific deck including all associated flashcards.
+
+        ## Authorization
+        - Requires valid JWT authentication
+        - Only the deck owner can access this endpoint
+        - Returns 404 for decks belonging to other users (security best practice)
+
+        ## Performance
+        - Uses optimized JOIN query to fetch deck and flashcards in single round-trip
+        - Response is cacheable for 5 minutes (Cache-Control: private, max-age=300)
+        - For decks with >1000 flashcards, consider using paginated flashcard endpoint
+
+        ## Use Cases
+        - Display deck contents in UI
+        - Edit flashcards
+        - Prepare for study session
+      operationId: getDeckById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID of the deck to retrieve
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "200":
+          description: Successfully retrieved deck with flashcards
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: Cache control directives
+              example: "private, max-age=300"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeckWithFlashcards"
+              examples:
+                deckWithFlashcards:
+                  summary: Deck with multiple flashcards
+                  value:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    name: "JavaScript Basics"
+                    created_at: "2024-01-01T00:00:00Z"
+                    updated_at: "2024-01-15T10:30:00Z"
+                    flashcards:
+                      - id: "660e8400-e29b-41d4-a716-446655440001"
+                        deck_id: "550e8400-e29b-41d4-a716-446655440000"
+                        front: "What is a closure?"
+                        back: "A function that has access to outer scope variables"
+                        is_ai_generated: false
+                        created_at: "2024-01-01T00:00:00Z"
+                        updated_at: "2024-01-01T00:00:00Z"
+                      - id: "660e8400-e29b-41d4-a716-446655440002"
+                        deck_id: "550e8400-e29b-41d4-a716-446655440000"
+                        front: "What is hoisting?"
+                        back: "Variable and function declarations are moved to the top of their scope"
+                        is_ai_generated: true
+                        created_at: "2024-01-02T12:00:00Z"
+                        updated_at: "2024-01-02T12:00:00Z"
+                emptyDeck:
+                  summary: Deck with no flashcards
+                  value:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    name: "Empty Deck"
+                    created_at: "2024-01-01T00:00:00Z"
+                    updated_at: "2024-01-01T00:00:00Z"
+                    flashcards: []
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Check API and service health status
+      operationId: healthCheck
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - version
+                  - timestamp
+                  - services
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, unhealthy]
+                    example: "healthy"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00Z"
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        enum: [connected, disconnected]
+                        example: "connected"
+                      ai_service:
+                        type: string
+                        enum: [available, unavailable]
+                        example: "available"

@@ -1,0 +1,1300 @@
+openapi: 3.0.3
+info:
+  title: 10xCards API
+  description: |
+    REST API for 10xCards - AI-powered flashcard generation application.
+
+    This API provides endpoints for:
+    - Deck management (CRUD operations)
+    - Flashcard management (manual and AI-generated)
+    - Spaced repetition study sessions
+    - User profile management
+    - Metrics and analytics
+
+    ## Authentication
+    All endpoints require JWT authentication via Supabase Auth.
+    Include the token in the `Authorization` header: `Bearer <token>`
+
+    ## Rate Limiting
+    - AI Generation: 10 requests per minute per user
+    - Other endpoints: 100 requests per minute per user
+
+    ## Date Format
+    All timestamps use ISO 8601 format (e.g., `2024-01-01T00:00:00Z`)
+  version: 1.0.0
+  contact:
+    name: 10xCards Support
+    email: support@10xcards.app
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.10xcards.app
+    description: Production server
+
+tags:
+  - name: Decks
+    description: Deck management operations
+  - name: Flashcards
+    description: Flashcard CRUD operations
+  - name: AI Generation
+    description: AI-powered flashcard generation
+  - name: Study
+    description: Spaced repetition study mode
+  - name: Metrics
+    description: Analytics and KSM tracking
+  - name: Profile
+    description: User profile management
+  - name: System
+    description: Health checks and system status
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase JWT token from authentication
+
+  schemas:
+    # ============================================
+    # Common Schemas
+    # ============================================
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Validation failed"
+        details:
+          type: array
+          items:
+            type: object
+          description: Additional error details (e.g., validation errors)
+        retry_after:
+          type: integer
+          description: Seconds to wait before retrying (for rate limit errors)
+          example: 60
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - total_pages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+          example: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 200
+          description: Items per page
+          example: 20
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items
+          example: 45
+        total_pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+          example: 3
+
+    # ============================================
+    # Deck Schemas
+    # ============================================
+
+    Deck:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+        - updated_at
+        - flashcard_count
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the deck
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the deck
+          example: "JavaScript Basics"
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of creation
+          example: "2024-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of last update
+          example: "2024-01-15T10:30:00Z"
+        flashcard_count:
+          type: integer
+          minimum: 0
+          description: Number of flashcards in the deck
+          example: 25
+
+    DeckList:
+      type: object
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Deck"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    DeckWithFlashcards:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+        - updated_at
+        - flashcards
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        flashcards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flashcard"
+
+    CreateDeckRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "JavaScript Basics"
+
+    UpdateDeckRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "JavaScript Advanced"
+
+    # ============================================
+    # Flashcard Schemas
+    # ============================================
+
+    Flashcard:
+      type: object
+      required:
+        - id
+        - deck_id
+        - front
+        - back
+        - is_ai_generated
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        deck_id:
+          type: string
+          format: uuid
+        front:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          example: "What is a closure?"
+        back:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          example: "A function that has access to outer scope variables"
+        is_ai_generated:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    FlashcardList:
+      type: object
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flashcard"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    CreateFlashcardRequest:
+      type: object
+      required:
+        - front
+        - back
+      properties:
+        front:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        back:
+          type: string
+          minLength: 1
+          maxLength: 5000
+
+    UpdateFlashcardRequest:
+      type: object
+      required:
+        - front
+        - back
+      properties:
+        front:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        back:
+          type: string
+          minLength: 1
+          maxLength: 5000
+
+    BulkCreateFlashcardsRequest:
+      type: object
+      required:
+        - deck_id
+        - flashcards
+      properties:
+        deck_id:
+          type: string
+          format: uuid
+        flashcards:
+          type: array
+          items:
+            type: object
+            required:
+              - front
+              - back
+              - is_ai_generated
+            properties:
+              front:
+                type: string
+              back:
+                type: string
+              is_ai_generated:
+                type: boolean
+
+    BulkCreateFlashcardsResponse:
+      type: object
+      required:
+        - created
+        - flashcards
+      properties:
+        created:
+          type: integer
+        flashcards:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              deck_id:
+                type: string
+                format: uuid
+              front:
+                type: string
+              back:
+                type: string
+              is_ai_generated:
+                type: boolean
+              created_at:
+                type: string
+                format: date-time
+
+    # ============================================
+    # AI Generation Schemas
+    # ============================================
+
+    GenerateFlashcardsRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Text to generate flashcards from (auto-truncated at 1000 chars)
+
+    GenerateFlashcardsResponse:
+      type: object
+      required:
+        - suggestions
+        - count
+        - truncated
+      properties:
+        suggestions:
+          type: array
+          items:
+            type: object
+            properties:
+              front:
+                type: string
+              back:
+                type: string
+        count:
+          type: integer
+        truncated:
+          type: boolean
+
+    # ============================================
+    # Study Mode Schemas
+    # ============================================
+
+    StudySession:
+      type: object
+      required:
+        - session_id
+        - deck_id
+        - deck_name
+        - cards_due
+        - total_due
+        - session_started_at
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        deck_id:
+          type: string
+          format: uuid
+        deck_name:
+          type: string
+        cards_due:
+          type: array
+          items:
+            type: object
+            properties:
+              flashcard_id:
+                type: string
+                format: uuid
+              front:
+                type: string
+              back:
+                type: string
+              study_record_id:
+                type: string
+                format: uuid
+              state:
+                type: string
+                enum: [new, learning, review, relearning]
+        total_due:
+          type: integer
+        session_started_at:
+          type: string
+          format: date-time
+
+    SubmitReviewRequest:
+      type: object
+      required:
+        - study_record_id
+        - flashcard_id
+        - rating
+      properties:
+        study_record_id:
+          type: string
+          format: uuid
+        flashcard_id:
+          type: string
+          format: uuid
+        rating:
+          type: string
+          enum: [again, good, easy]
+
+    ReviewResponse:
+      type: object
+      required:
+        - study_record_id
+        - next_review_date
+        - stability
+        - difficulty
+        - state
+      properties:
+        study_record_id:
+          type: string
+          format: uuid
+        next_review_date:
+          type: string
+          format: date-time
+        stability:
+          type: number
+        difficulty:
+          type: number
+        state:
+          type: string
+          enum: [new, learning, review, relearning]
+
+    StudyStats:
+      type: object
+      required:
+        - deck_id
+        - total_cards
+        - cards_studied_today
+        - cards_due_today
+        - cards_due_tomorrow
+        - average_difficulty
+        - retention_rate
+        - streak_days
+      properties:
+        deck_id:
+          type: string
+          format: uuid
+        total_cards:
+          type: integer
+        cards_studied_today:
+          type: integer
+        cards_due_today:
+          type: integer
+        cards_due_tomorrow:
+          type: integer
+        average_difficulty:
+          type: number
+        retention_rate:
+          type: number
+        streak_days:
+          type: integer
+
+    # ============================================
+    # Profile Schemas
+    # ============================================
+
+    Profile:
+      type: object
+      required:
+        - id
+        - email
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          pattern: "^[a-zA-Z0-9_]+$"
+
+    # ============================================
+    # Metrics Schemas
+    # ============================================
+
+    AIAdoptionMetrics:
+      type: object
+      required:
+        - total_active_flashcards
+        - ai_generated_active_flashcards
+        - adoption_rate
+        - meets_target
+        - target_rate
+      properties:
+        total_active_flashcards:
+          type: integer
+        ai_generated_active_flashcards:
+          type: integer
+        adoption_rate:
+          type: number
+        meets_target:
+          type: boolean
+        target_rate:
+          type: number
+
+    AIAcceptanceMetrics:
+      type: object
+      required:
+        - period
+        - total_suggested
+        - total_accepted
+        - total_rejected
+        - acceptance_rate
+        - meets_target
+        - target_rate
+      properties:
+        period:
+          type: string
+          enum: [day, week, month, all]
+        total_suggested:
+          type: integer
+        total_accepted:
+          type: integer
+        total_rejected:
+          type: integer
+        acceptance_rate:
+          type: number
+        meets_target:
+          type: boolean
+        target_rate:
+          type: number
+
+    # ============================================
+    # Health Check Schema
+    # ============================================
+
+    HealthCheck:
+      type: object
+      required:
+        - status
+        - version
+        - timestamp
+        - services
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [connected, disconnected]
+            ai_service:
+              type: string
+              enum: [available, unavailable]
+
+  responses:
+    # Common Error Responses
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    RateLimitExceeded:
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ============================================
+  # Deck Endpoints
+  # ============================================
+
+  /api/decks:
+    get:
+      tags:
+        - Decks
+      summary: List all decks
+      description: Retrieve paginated list of decks for authenticated user
+      operationId: listDecks
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [name, created_at, updated_at]
+            default: updated_at
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeckList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - Decks
+      summary: Create deck
+      description: Create a new deck
+      operationId: createDeck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeckRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deck"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/decks/{id}:
+    get:
+      tags:
+        - Decks
+      summary: Get deck
+      description: Retrieve deck with all flashcards
+      operationId: getDeck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeckWithFlashcards"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags:
+        - Decks
+      summary: Update deck
+      description: Update deck name
+      operationId: updateDeck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeckRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deck"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - Decks
+      summary: Delete deck
+      description: Delete deck and all flashcards
+      operationId: deleteDeck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ============================================
+  # Flashcard Endpoints
+  # ============================================
+
+  /api/decks/{deckId}/flashcards:
+    get:
+      tags:
+        - Flashcards
+      summary: List flashcards
+      description: Get paginated flashcards in a deck
+      operationId: listFlashcards
+      parameters:
+        - name: deckId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlashcardList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - Flashcards
+      summary: Create flashcard
+      description: Create a single flashcard
+      operationId: createFlashcard
+      parameters:
+        - name: deckId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlashcardRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flashcard"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/flashcards/bulk:
+    post:
+      tags:
+        - Flashcards
+      summary: Bulk create flashcards
+      description: Create multiple flashcards at once
+      operationId: bulkCreateFlashcards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkCreateFlashcardsRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkCreateFlashcardsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/flashcards/{id}:
+    put:
+      tags:
+        - Flashcards
+      summary: Update flashcard
+      description: Update flashcard content
+      operationId: updateFlashcard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFlashcardRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flashcard"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - Flashcards
+      summary: Delete flashcard
+      description: Delete a flashcard
+      operationId: deleteFlashcard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ============================================
+  # AI Generation Endpoints
+  # ============================================
+
+  /api/ai/generate:
+    post:
+      tags:
+        - AI Generation
+      summary: Generate flashcards
+      description: Generate flashcard suggestions from text using AI
+      operationId: generateFlashcards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateFlashcardsRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateFlashcardsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimitExceeded"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ============================================
+  # Study Mode Endpoints
+  # ============================================
+
+  /api/study/session/{deckId}:
+    get:
+      tags:
+        - Study
+      summary: Start study session
+      description: Initialize study session and get due cards
+      operationId: startStudySession
+      parameters:
+        - name: deckId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudySession"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/study/review:
+    post:
+      tags:
+        - Study
+      summary: Submit review
+      description: Submit flashcard review rating
+      operationId: submitReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitReviewRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/study/stats/{deckId}:
+    get:
+      tags:
+        - Study
+      summary: Get study statistics
+      description: Retrieve comprehensive study statistics for a deck
+      operationId: getStudyStats
+      parameters:
+        - name: deckId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudyStats"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ============================================
+  # Profile Endpoints
+  # ============================================
+
+  /api/profile:
+    get:
+      tags:
+        - Profile
+      summary: Get profile
+      description: Retrieve current user profile
+      operationId: getProfile
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags:
+        - Profile
+      summary: Update profile
+      description: Update user profile
+      operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ============================================
+  # Metrics Endpoints
+  # ============================================
+
+  /api/metrics/ai-adoption:
+    get:
+      tags:
+        - Metrics
+      summary: Get AI adoption metrics
+      description: Retrieve AI adoption rate (KSM 2)
+      operationId: getAIAdoptionMetrics
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIAdoptionMetrics"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/metrics/ai-acceptance:
+    get:
+      tags:
+        - Metrics
+      summary: Get AI acceptance metrics
+      description: Retrieve AI acceptance rate (KSM 1)
+      operationId: getAIAcceptanceMetrics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, all]
+            default: all
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIAcceptanceMetrics"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ============================================
+  # System Endpoints
+  # ============================================
+
+  /api/health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Check API and service health
+      operationId: healthCheck
+      security: []
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheck"
+        "503":
+          description: Unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheck"
