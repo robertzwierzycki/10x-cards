@@ -58,7 +58,7 @@ export function DeckActions({ deckId, cardsDueToday, hasFlashcards, onAddFlashca
 
       {/* Generate with AI Button */}
       <a
-        href="/generate"
+        href={`/generate?deckId=${deckId}`}
         className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/80 font-medium transition-colors"
       >
         <Sparkles className="h-4 w-4" />

@@ -8,10 +8,17 @@ const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect("/login");
 }
+
+// Get deckId from URL params if provided
+const deckId = Astro.url.searchParams.get("deckId");
 ---
 
 <ProtectedLayout title="Generator AI">
-  <div id="ai-generator-root" data-user-id={user.id}></div>
+  <div
+    id="ai-generator-root"
+    data-user-id={user.id}
+    data-deck-id={deckId}
+  ></div>
 </ProtectedLayout>
 
 <script>
@@ -23,7 +30,11 @@ if (!user) {
   const rootElement = document.getElementById("ai-generator-root");
   if (rootElement) {
     const userId = rootElement.dataset.userId;
+    const deckId = rootElement.dataset.deckId || undefined;
     const root = createRoot(rootElement);
-    root.render(createElement(AIGeneratorView, { userId: userId || "" }));
+    root.render(createElement(AIGeneratorView, {
+      userId: userId || "",
+      deckId: deckId
+    }));
   }
 </script>

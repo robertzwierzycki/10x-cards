@@ -14,10 +14,11 @@ import { toast } from 'sonner';
 import type { AIGeneratorViewProps } from '@/types/generator.types';
 import type { DeckDTO } from '@/types';
 
-export default function AIGeneratorView({ userId }: AIGeneratorViewProps) {
+export default function AIGeneratorView({ userId, deckId }: AIGeneratorViewProps) {
   const generator = useGenerator();
   const [decks, setDecks] = useState<DeckDTO[]>([]);
   const [isLoadingDecks, setIsLoadingDecks] = useState(true);
+  const [shouldAutoSave, setShouldAutoSave] = useState(false);
 
   // Load decks on mount
   useEffect(() => {
@@ -25,6 +26,17 @@ export default function AIGeneratorView({ userId }: AIGeneratorViewProps) {
       try {
         const response = await fetchDecks();
         setDecks(response.data);
+
+        // If deckId is provided, verify it exists and set it as selected
+        if (deckId) {
+          const deckExists = response.data.some((deck) => deck.id === deckId);
+          if (deckExists) {
+            generator.setSelectedDeck(deckId);
+            setShouldAutoSave(true);
+          } else {
+            toast.error('Nie znaleziono wskazanej talii');
+          }
+        }
       } catch (error) {
         toast.error('Nie udało się załadować talii');
         console.error('Failed to load decks:', error);
@@ -34,7 +46,7 @@ export default function AIGeneratorView({ userId }: AIGeneratorViewProps) {
     };
 
     loadDecks();
-  }, []);
+  }, [deckId]);
 
   // Handle text change
   const handleTextChange = (text: string) => {
@@ -99,6 +111,31 @@ export default function AIGeneratorView({ userId }: AIGeneratorViewProps) {
     }
   }, [generator.error]);
 
+  // Auto-save flashcards when generated (if deckId was provided)
+  useEffect(() => {
+    if (
+      shouldAutoSave &&
+      generator.viewState === 'review' &&
+      generator.suggestions.length > 0 &&
+      generator.selectedDeckId
+    ) {
+      // Auto-save to the pre-selected deck
+      const autoSave = async () => {
+        try {
+          await handleSave(generator.selectedDeckId!);
+          toast.success('Fiszki zostały automatycznie dodane do talii!', {
+            description: 'Przekierowuję do widoku talii...',
+          });
+        } catch (error) {
+          // Error is already handled by handleSave
+          setShouldAutoSave(false); // Prevent retry loop
+        }
+      };
+
+      autoSave();
+    }
+  }, [shouldAutoSave, generator.viewState, generator.suggestions.length, generator.selectedDeckId]);
+
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
       {/* Breadcrumb */}
@@ -160,6 +197,7 @@ export default function AIGeneratorView({ userId }: AIGeneratorViewProps) {
           onDeckSelect={generator.setSelectedDeck}
           onToggleCreateNew={generator.toggleCreateNewDeck}
           onNewDeckNameChange={generator.setNewDeckName}
+          isAutoSaveMode={shouldAutoSave}
         />
       )}
 

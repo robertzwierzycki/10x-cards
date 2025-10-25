@@ -74,6 +74,7 @@ export interface SuggestionCardHandlers {
 export interface AIGeneratorViewProps {
   userId: string;
   initialDecks?: DeckDTO[];
+  deckId?: string; // Optional deck ID to auto-save to specific deck
 }
 
 /**
@@ -128,6 +129,7 @@ export interface SuggestionsReviewProps {
   onDeckSelect: (deckId: string) => void;
   onToggleCreateNew: () => void;
   onNewDeckNameChange: (name: string) => void;
+  isAutoSaveMode?: boolean; // Hide deck selector in auto-save mode
 }
 
 /**

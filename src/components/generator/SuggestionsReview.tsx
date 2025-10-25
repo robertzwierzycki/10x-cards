@@ -25,6 +25,7 @@ export function SuggestionsReview({
   onDeckSelect,
   onToggleCreateNew,
   onNewDeckNameChange,
+  isAutoSaveMode = false,
 }: SuggestionsReviewProps) {
   // Filter out deleted suggestions for display
   const activeSuggestions = useMemo(
@@ -114,18 +115,28 @@ export function SuggestionsReview({
         </div>
       )}
 
-      {/* Deck selector */}
-      <div className="pt-4 border-t">
-        <DeckSelector
-          decks={decks}
-          selectedDeckId={selectedDeckId}
-          onSelect={onDeckSelect}
-          isCreatingNew={isCreatingNewDeck}
-          onToggleCreateNew={onToggleCreateNew}
-          newDeckName={newDeckName}
-          onNewDeckNameChange={onNewDeckNameChange}
-        />
-      </div>
+      {/* Deck selector or auto-save info */}
+      {!isAutoSaveMode ? (
+        <div className="pt-4 border-t">
+          <DeckSelector
+            decks={decks}
+            selectedDeckId={selectedDeckId}
+            onSelect={onDeckSelect}
+            isCreatingNew={isCreatingNewDeck}
+            onToggleCreateNew={onToggleCreateNew}
+            newDeckName={newDeckName}
+            onNewDeckNameChange={onNewDeckNameChange}
+          />
+        </div>
+      ) : (
+        <Alert className="border-blue-500/50 bg-blue-50 dark:bg-blue-950/20">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-900 dark:text-blue-100">
+            Fiszki zostaną automatycznie dodane do talii:{' '}
+            <strong>{decks.find((d) => d.id === selectedDeckId)?.name || 'wybranej talii'}</strong>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Action buttons */}
       <ActionButtons
