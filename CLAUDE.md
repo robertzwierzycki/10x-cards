@@ -68,8 +68,55 @@ When implementing API routes in `src/pages/api/`:
 
 - Server state: Managed through Supabase queries in API routes
 - Client state: React hooks for local component state
-- Form state: Consider React Hook Form for complex forms
-- Global client state: Context API or Zustand when needed
+- Form state: Use React Hook Form for complex forms with Zod validation
+- Global client state: Use Zustand for state management (preferred over Context API)
+
+#### Zustand Configuration
+
+```typescript
+// src/stores/example.store.ts
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+interface StoreState {
+  // State
+  decks: Deck[];
+  currentDeck: Deck | null;
+  // Actions
+  setDecks: (decks: Deck[]) => void;
+  setCurrentDeck: (deck: Deck | null) => void;
+}
+
+export const useStore = create<StoreState>()(
+  devtools((set) => ({
+    decks: [],
+    currentDeck: null,
+    setDecks: (decks) => set({ decks }),
+    setCurrentDeck: (deck) => set({ currentDeck: deck }),
+  }))
+);
+```
+
+#### React Hook Form with Zod
+
+```typescript
+// Form validation example
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const schema = z.object({
+  front: z.string().min(1, 'Front text is required'),
+  back: z.string().min(1, 'Back text is required'),
+});
+
+type FormData = z.infer<typeof schema>;
+
+// In component
+const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  resolver: zodResolver(schema),
+});
+```
 
 ### Error Handling Strategy
 
@@ -309,3 +356,4 @@ Key Principles
 - Use Zod for form validation.
 - Use Zustand for state managament.
 - Use Shadcn UI, Radix, and Tailwind CSS for components and styling.
+- ULTRATHINK
