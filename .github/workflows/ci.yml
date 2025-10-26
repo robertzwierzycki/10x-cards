@@ -1,9 +1,6 @@
 name: CI Pipeline
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master
@@ -12,6 +9,10 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
 
     env:
       NODE_ENV: test
@@ -40,5 +41,31 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Run unit tests
-        run: npm run test:run
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Post success comment
+        if: success()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **CI Pipeline Passed Successfully**\n\n' +
+                    '- ✅ Linting passed\n' +
+                    '- ✅ Build completed\n' +
+                    '- ✅ Unit tests passed\n\n' +
+                    '📊 Coverage report is available in the [workflow artifacts](' +
+                    `${context.payload.repository.html_url}/actions/runs/${context.runId}` +
+                    ').'
+            })
