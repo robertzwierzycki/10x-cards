@@ -34,6 +34,7 @@ The project is built with a modern, scalable, and efficient tech stack.
 | **AI Integration** | [OpenRouter.ai](https://openrouter.ai/) (for LLM access) |
 | **Runtime**   | [Node.js](https://nodejs.org/) `22.14.0` |
 | **Tooling**   | [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Husky](https://typicode.github.io/husky/) |
+| **Testing**   | [Vitest](https://vitest.dev/), [React Testing Library](https://testing-library.com/react), [Playwright](https://playwright.dev/), [MSW](https://mswjs.io/) |
 
 ## Getting Started Locally
 
@@ -87,6 +88,75 @@ The following scripts are available in `package.json`:
 | `lint`     | Lints the codebase using ESLint.         |
 | `lint:fix` | Lints and automatically fixes issues.    |
 | `format`   | Formats the code using Prettier.         |
+| `test`     | Runs unit and integration tests with Vitest. |
+| `test:ui`  | Opens Vitest UI for interactive testing. |
+| `test:e2e` | Runs end-to-end tests with Playwright.   |
+| `test:e2e:ui` | Opens Playwright UI for debugging E2E tests. |
+
+## Testing
+
+10xCards implements a comprehensive testing strategy following the testing pyramid approach to ensure high quality and reliability.
+
+### Testing Strategy
+
+Our testing approach covers multiple levels:
+
+1. **Unit Tests**: Testing individual functions, hooks, and components in isolation
+2. **Integration Tests**: Verifying interactions between components, stores, and API routes
+3. **End-to-End Tests**: Simulating real user workflows in the browser
+4. **Database Tests**: Validating RLS policies, triggers, and constraints
+5. **Accessibility Tests**: Ensuring WCAG 2.1 AA compliance
+
+### Testing Tools
+
+| Tool | Purpose |
+|------|---------|
+| **Vitest** | Fast unit and integration test runner |
+| **React Testing Library** | Testing React components and user interactions |
+| **Playwright** | End-to-end browser testing (preferred) |
+| **MSW (Mock Service Worker)** | API mocking for stable test environments |
+| **Axe DevTools** | Automated accessibility testing |
+
+### Running Tests
+
+```bash
+# Run all unit and integration tests
+pnpm test
+
+# Run tests in watch mode during development
+pnpm test:watch
+
+# Open Vitest UI for interactive testing
+pnpm test:ui
+
+# Run E2E tests with Playwright
+pnpm test:e2e
+
+# Run E2E tests in headed mode (see browser)
+pnpm test:e2e:headed
+
+# Open Playwright UI for debugging E2E tests
+pnpm test:e2e:ui
+
+# Generate test coverage report
+pnpm test:coverage
+```
+
+### Test Coverage Goals
+
+- **Business Logic**: >80% coverage for services, hooks, and utilities
+- **Components**: Focus on user interactions and critical paths
+- **API Routes**: Complete coverage of all endpoints with mocked Supabase
+- **E2E Tests**: All critical user flows (P1 and P2 priority)
+
+### Continuous Integration
+
+All tests are automatically run in GitHub Actions CI pipeline:
+- Unit and integration tests: on every push and pull request
+- E2E tests: before deployment to staging environment
+- Accessibility checks: integrated into component tests
+
+For detailed testing specifications, see the [Test Plan](.ai/test-plan.md).
 
 ## API Documentation
 

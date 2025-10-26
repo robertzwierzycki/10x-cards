@@ -103,6 +103,46 @@ To podejście redukuje koszty utrzymania MVP do $0 (darmowe plany Vercel i Supab
 
 ---
 
+## 7. Czy stos wspiera kompleksową strategię testowania?
+
+**Ocena: Tak. Proponowany stos jest w pełni kompatybilny z nowoczesną piramidą testów.**
+
+Zgodnie z planem testów (@test-plan.md), projekt będzie wykorzystywał następujące narzędzia testowe:
+
+### Narzędzia Testowe:
+
+* **Vitest:** Framework testowy do testów jednostkowych i integracyjnych. Jest szybki, nowoczesny i dobrze zintegrowany z Vite/Astro.
+* **React Testing Library (RTL):** Do testowania komponentów React w izolacji i weryfikacji interakcji użytkownika.
+* **Playwright:** Preferowane narzędzie do testów E2E, umożliwiające symulację rzeczywistych przepływów użytkownika w przeglądarce.
+* **MSW (Mock Service Worker):** Do mockowania API w testach integracyjnych i E2E, zapewniając stabilne środowisko testowe.
+* **Axe DevTools:** Automatyczna analiza dostępności (a11y) zgodnie z WCAG 2.1 AA.
+* **GitHub Actions:** CI/CD do automatycznego uruchamiania testów przy każdym push/PR.
+
+### Poziomy Testowania:
+
+1. **Testy Jednostkowe:** Logika biznesowa (serwisy, hooki, funkcje pomocnicze, schematy Zod, akcje Zustand)
+2. **Testy Integracyjne:** Interakcje między komponentami, integracja ze store, API routes z Supabase
+3. **Testy E2E:** Kluczowe scenariusze użytkownika (rejestracja, generowanie AI, sesja nauki)
+4. **Testy Bazy Danych:** Weryfikacja RLS, triggerów, constraints w Supabase
+5. **Testy Manualne:** Eksploracyjne testy UX/UI, responsywności i przypadków brzegowych
+
+### Zgodność ze stosem:
+
+* **Astro + React:** Vitest i RTL są w pełni kompatybilne. Playwright świetnie radzi sobie z hybrydową architekturą (Astro + React islands).
+* **TypeScript:** Wszystkie narzędzia testowe oferują pierwszorzędne wsparcie dla TypeScript.
+* **Supabase:** Można testować RLS i integrację z API używając test helpers lub dedykowanej testowej bazy danych.
+* **OpenRouter.ai:** MSW pozwala na mockowanie API OpenRouter w testach, eliminując koszty i niestabilność podczas testowania.
+
+### Automatyzacja w CI:
+
+* Testy jednostkowe i integracyjne: uruchamiane przy każdym pushu/PR
+* Testy E2E (kluczowe przepływy): uruchamiane przed wdrożeniem na staging
+* Cel pokrycia kodu: >80% dla logiki biznesowej
+
+**Wniosek:** Stos technologiczny jest doskonale przygotowany do wdrożenia kompleksowej strategii testowania, co jest kluczowe dla zapewnienia wysokiej jakości MVP.
+
+---
+
 ### Podsumowanie i Rekomendacje
 
 Proponowany stos jest **funkcjonalny i wysoce skalowalny**, ale **nie jest zoptymalizowany pod kątem szybkości dostarczenia MVP i minimalizacji kosztów**.
