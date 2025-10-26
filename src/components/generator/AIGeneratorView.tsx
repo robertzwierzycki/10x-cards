@@ -17,36 +17,40 @@ import type { DeckDTO } from '@/types';
 export default function AIGeneratorView({ userId, deckId }: AIGeneratorViewProps) {
   const generator = useGenerator();
   const [decks, setDecks] = useState<DeckDTO[]>([]);
-  const [isLoadingDecks, setIsLoadingDecks] = useState(true);
+  const [isLoadingDecks, setIsLoadingDecks] = useState(false);
   const [shouldAutoSave, setShouldAutoSave] = useState(false);
 
-  // Load decks on mount
+  // Load decks only when entering review state
   useEffect(() => {
-    const loadDecks = async () => {
-      try {
-        const response = await fetchDecks();
-        setDecks(response.data);
+    // Only load decks when we're in review state and haven't loaded them yet
+    if (generator.viewState === 'review' && decks.length === 0 && !isLoadingDecks) {
+      const loadDecks = async () => {
+        setIsLoadingDecks(true);
+        try {
+          const response = await fetchDecks();
+          setDecks(response.data);
 
-        // If deckId is provided, verify it exists and set it as selected
-        if (deckId) {
-          const deckExists = response.data.some((deck) => deck.id === deckId);
-          if (deckExists) {
-            generator.setSelectedDeck(deckId);
-            setShouldAutoSave(true);
-          } else {
-            toast.error('Nie znaleziono wskazanej talii');
+          // If deckId is provided, verify it exists and set it as selected
+          if (deckId) {
+            const deckExists = response.data.some((deck) => deck.id === deckId);
+            if (deckExists) {
+              generator.setSelectedDeck(deckId);
+              setShouldAutoSave(true);
+            } else {
+              toast.error('Nie znaleziono wskazanej talii');
+            }
           }
+        } catch (error) {
+          toast.error('Nie udało się załadować talii');
+          console.error('Failed to load decks:', error);
+        } finally {
+          setIsLoadingDecks(false);
         }
-      } catch (error) {
-        toast.error('Nie udało się załadować talii');
-        console.error('Failed to load decks:', error);
-      } finally {
-        setIsLoadingDecks(false);
-      }
-    };
+      };
 
-    loadDecks();
-  }, [deckId]);
+      loadDecks();
+    }
+  }, [generator.viewState, deckId, decks.length, isLoadingDecks]);
 
   // Handle text change
   const handleTextChange = (text: string) => {
@@ -163,13 +167,13 @@ export default function AIGeneratorView({ userId, deckId }: AIGeneratorViewProps
           <TextInputSection
             text={generator.text}
             onTextChange={handleTextChange}
-            disabled={isLoadingDecks}
+            disabled={false}
           />
 
           <div className="flex justify-end">
             <GenerateButton
               onClick={handleGenerate}
-              disabled={generator.text.trim().length === 0 || isLoadingDecks}
+              disabled={generator.text.trim().length === 0}
               isLoading={false}
               rateLimitRemaining={generator.rateLimit.remaining}
               resetTime={generator.rateLimit.resetTime}

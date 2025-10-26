@@ -1,0 +1,18 @@
+---
+/**
+ * Email Confirmation Page
+ * Handles email verification after user registration
+ */
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import EmailConfirmation from "@/components/auth/EmailConfirmation";
+
+// Note: User will have temporary session from confirmation link
+// Component will handle verification automatically
+---
+
+<PublicLayout
+  title="Potwierdzenie emaila - 10xCards"
+  description="Potwierdzenie adresu email w 10xCards"
+>
+  <EmailConfirmation client:load />
+</PublicLayout>

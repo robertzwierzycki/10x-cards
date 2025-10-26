@@ -1,0 +1,18 @@
+---
+/**
+ * Set New Password Page
+ * Allows users to set new password after clicking reset link from email
+ */
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import NewPasswordForm from "@/components/auth/NewPasswordForm";
+
+// Note: User might have temporary session from reset link
+// But we don't redirect if authenticated - they came from email link
+---
+
+<PublicLayout
+  title="Ustaw nowe hasło - 10xCards"
+  description="Ustaw nowe hasło dla konta 10xCards"
+>
+  <NewPasswordForm client:load />
+</PublicLayout>

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
 import { toast } from "sonner";
 
 export default function RegisterForm() {
@@ -25,38 +24,40 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      // Create Supabase client
-      const supabase = createBrowserClient(
-        import.meta.env.PUBLIC_SUPABASE_URL,
-        import.meta.env.PUBLIC_SUPABASE_ANON_KEY
-      );
-
-      // Sign up with Supabase
-      const { data: authData, error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      // Call register API endpoint
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+        }),
       });
 
-      if (error) {
-        // Handle specific error cases
-        if (error.message.includes("already registered") || error.message.includes("User already registered")) {
-          toast.error("Ten adres e-mail jest już zarejestrowany");
-        } else if (error.status === 429) {
-          toast.error("Zbyt wiele prób rejestracji. Spróbuj ponownie za chwilę.");
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle specific HTTP error codes
+        if (response.status === 409) {
+          toast.error(result.error || "Ten adres e-mail jest już zarejestrowany");
+        } else if (response.status === 429) {
+          toast.error(result.error || "Zbyt wiele prób rejestracji. Spróbuj ponownie za chwilę");
+        } else if (response.status === 400) {
+          toast.error(result.error || "Nieprawidłowe dane. Sprawdź formularz");
         } else {
-          toast.error("Wystąpił błąd podczas rejestracji. Spróbuj ponownie.");
+          toast.error(result.error || "Wystąpił błąd podczas rejestracji. Spróbuj ponownie");
         }
         return;
       }
 
       // Check if email verification is required
-      if (authData.user && !authData.session) {
+      if (result.requiresEmailConfirmation) {
         // Email verification required - show info toast
-        toast.info("Sprawdź swoją skrzynkę e-mail i potwierdź rejestrację", {
-          duration: 5000,
+        toast.info("Sprawdź swoją skrzynkę e-mail i potwierdź rejestrację. Link aktywny przez 24 godziny", {
+          duration: 6000,
         });
         // Redirect to login after short delay
         setTimeout(() => {
@@ -65,14 +66,13 @@ export default function RegisterForm() {
         return;
       }
 
-      // Redirect on success (auto-confirmed)
-      if (authData.session) {
-        toast.success("Konto zostało utworzone pomyślnie!");
-        // Redirect to generator (FTUE)
-        setTimeout(() => {
-          window.location.assign("/generate");
-        }, 1000);
-      }
+      // Success - auto-confirmed account (FTUE)
+      toast.success("Konto zostało utworzone pomyślnie!");
+      // Redirect to generator (First Time User Experience - US-027)
+      setTimeout(() => {
+        window.location.assign("/generate");
+      }, 1000);
+
     } catch (error) {
       console.error("Registration error:", error);
 
@@ -80,7 +80,7 @@ export default function RegisterForm() {
       if (!navigator.onLine) {
         toast.error("Brak połączenia z internetem");
       } else {
-        toast.error("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
+        toast.error("Wystąpił nieoczekiwany błąd. Spróbuj ponownie");
       }
     }
   };

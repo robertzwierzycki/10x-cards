@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -33,36 +32,39 @@ export default function LoginForm({ redirectTo = "/" }: LoginFormProps) {
     try {
       setServerError(null);
 
-      // Create Supabase client
-      const supabase = createBrowserClient(
-        import.meta.env.PUBLIC_SUPABASE_URL,
-        import.meta.env.PUBLIC_SUPABASE_ANON_KEY
-      );
-
-      // Sign in with Supabase
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
+      // Call login API endpoint
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
       });
 
-      if (error) {
-        // Handle specific error cases
-        if (error.message.includes("Invalid login credentials")) {
-          setServerError("Nieprawidłowy e-mail lub hasło");
-        } else if (error.status === 429) {
-          setServerError("Zbyt wiele prób logowania. Spróbuj ponownie za chwilę.");
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle specific HTTP error codes
+        if (response.status === 401) {
+          setServerError(result.error || "Nieprawidłowy e-mail lub hasło");
+        } else if (response.status === 403) {
+          setServerError(result.error || "Potwierdź swój adres email przed zalogowaniem");
+        } else if (response.status === 429) {
+          setServerError(result.error || "Zbyt wiele prób logowania. Spróbuj ponownie za chwilę");
         } else {
-          setServerError("Wystąpił błąd podczas logowania. Spróbuj ponownie.");
+          setServerError(result.error || "Wystąpił błąd podczas logowania. Spróbuj ponownie");
         }
         return;
       }
 
-      // Redirect on success
-      if (authData.session) {
-        // Decode URL in case it was encoded by middleware
-        const decodedRedirect = decodeURIComponent(redirectTo);
-        window.location.href = decodedRedirect;
-      }
+      // Success - redirect to target page
+      // Decode URL in case it was encoded by middleware
+      const decodedRedirect = decodeURIComponent(redirectTo);
+      window.location.href = decodedRedirect;
+
     } catch (error) {
       console.error("Login error:", error);
 
@@ -70,7 +72,7 @@ export default function LoginForm({ redirectTo = "/" }: LoginFormProps) {
       if (!navigator.onLine) {
         setServerError("Brak połączenia z internetem");
       } else {
-        setServerError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
+        setServerError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie");
       }
     }
   };

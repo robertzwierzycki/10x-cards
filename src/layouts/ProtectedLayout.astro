@@ -4,6 +4,7 @@
  * Layout for authenticated pages with user session
  */
 import Layout from "./Layout.astro";
+import { Header } from "@/components/navigation/Header";
 import { Toaster } from "sonner";
 
 interface Props {
@@ -16,11 +17,15 @@ const { title = "10xCards" } = Astro.props;
 const user = Astro.locals.user;
 
 if (!user) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirectTo=" + encodeURIComponent(Astro.url.pathname));
 }
+
+// Get current path for active nav state
+const currentPath = Astro.url.pathname;
 ---
 
 <Layout title={title}>
+  <Header userEmail={user.email} currentPath={currentPath} client:load />
   <main class="min-h-screen bg-background">
     <slot />
   </main>

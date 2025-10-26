@@ -5,42 +5,36 @@
  */
 
 import { defineMiddleware } from "astro:middleware";
-import { createServerClient } from "@supabase/ssr";
-import type { Database } from "../db/database.types.js";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 // Define public routes that don't require authentication
-const PUBLIC_ROUTES = ["/login", "/register", "/reset-password", "/reset-password/confirm", "/auth/confirm"];
+const PUBLIC_ROUTES = ["/login", "/register", "/reset-password", "/auth/confirm", "/auth/reset"];
 
-// Define routes that should redirect authenticated users
+// Define routes that should redirect authenticated users (already logged in)
 const AUTH_ROUTES = ["/login", "/register", "/reset-password"];
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  // Create Supabase SSR client
-  const supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
-    cookies: {
-      get(key) {
-        return context.cookies.get(key)?.value;
-      },
-      set(key, value, options) {
-        context.cookies.set(key, value, options);
-      },
-      remove(key, options) {
-        context.cookies.delete(key, options);
-      },
-    },
+  // Create Supabase SSR client using centralized helper
+  const supabase = createSupabaseServerClient({
+    cookies: context.cookies,
+    headers: context.request.headers,
   });
 
-  // Inject Supabase client into context
+  // Inject Supabase client into context for use in pages/API routes
   context.locals.supabase = supabase;
 
   // Get authenticated user (secure method - verifies with Supabase Auth server)
+  // This also automatically refreshes expired tokens
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   // Add user to context if authenticated
   if (user) {
-    context.locals.user = user;
+    context.locals.user = {
+      id: user.id,
+      email: user.email!,
+    };
   }
 
   const url = new URL(context.request.url);
