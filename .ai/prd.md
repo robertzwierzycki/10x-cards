@@ -21,6 +21,7 @@ Wersja MVP produktu będzie obejmować następujące główne moduły funkcjonal
     * Logowanie na istniejące konto.
     * Mechanizm resetowania hasła ("Zapomniałem hasła").
     * Możliwość wylogowania się.
+    * Niezalogowany użytkownik nie ma dostępu do innych widkoów aplikacji.
 
 2.  Zarządzanie Talią (Decks)
     * Tworzenie nowej, pustej talii.
