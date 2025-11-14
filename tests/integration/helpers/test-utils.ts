@@ -8,8 +8,7 @@
  * - Response validation helpers
  */
 
-import { expect } from "vitest";
-import { createClient } from "@supabase/supabase-js";
+import { expect, vi } from "vitest";
 import type { User } from "@supabase/supabase-js";
 
 /**
@@ -43,43 +42,216 @@ export function createMockSupabaseClient(user: User = mockUser) {
   const supabaseUrl = process.env.SUPABASE_URL || "https://mock.supabase.co";
   const supabaseKey = process.env.SUPABASE_KEY || "mock-key";
 
-  const client = createClient(supabaseUrl, supabaseKey);
+  // Create a fully mocked Supabase client with proper chainable methods
+  const client = {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({
+        data: { user },
+        error: null,
+      }),
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: { user, access_token: "mock-token" } },
+        error: null,
+      }),
+    },
+    from: vi.fn((table: string) => {
+      // Store query state for building response
+      let queryState: any = {
+        table,
+        filters: [],
+        ordering: null,
+        rangeStart: null,
+        rangeEnd: null,
+        shouldCount: false,
+      };
 
-  // Mock auth methods
-  (client.auth.getUser as any) = async () => ({
-    data: { user },
-    error: null,
-  });
+      // Return chainable query builder
+      const queryBuilder: any = {
+        select: vi.fn((columns?: string) => {
+          queryState.columns = columns;
 
-  (client.auth.getSession as any) = async () => ({
-    data: { session: { user, access_token: "mock-token" } },
-    error: null,
-  });
+          // Check if count is requested
+          if (columns === "*" && queryBuilder.count) {
+            queryState.shouldCount = true;
+          }
 
-  return client;
+          return queryBuilder;
+        }),
+        insert: vi.fn((data) => {
+          queryState.action = "insert";
+          queryState.data = data;
+          return queryBuilder;
+        }),
+        update: vi.fn((data) => {
+          queryState.action = "update";
+          queryState.data = data;
+          return queryBuilder;
+        }),
+        upsert: vi.fn((data) => {
+          queryState.action = "upsert";
+          queryState.data = data;
+          return queryBuilder;
+        }),
+        delete: vi.fn(() => {
+          queryState.action = "delete";
+          return queryBuilder;
+        }),
+        eq: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "eq", value });
+          return queryBuilder;
+        }),
+        neq: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "neq", value });
+          return queryBuilder;
+        }),
+        gt: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "gt", value });
+          return queryBuilder;
+        }),
+        gte: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "gte", value });
+          return queryBuilder;
+        }),
+        lt: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "lt", value });
+          return queryBuilder;
+        }),
+        lte: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "lte", value });
+          return queryBuilder;
+        }),
+        like: vi.fn((column, pattern) => {
+          queryState.filters.push({ column, op: "like", pattern });
+          return queryBuilder;
+        }),
+        ilike: vi.fn((column, pattern) => {
+          queryState.filters.push({ column, op: "ilike", pattern });
+          return queryBuilder;
+        }),
+        is: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "is", value });
+          return queryBuilder;
+        }),
+        in: vi.fn((column, values) => {
+          queryState.filters.push({ column, op: "in", values });
+          return queryBuilder;
+        }),
+        contains: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "contains", value });
+          return queryBuilder;
+        }),
+        containedBy: vi.fn((column, value) => {
+          queryState.filters.push({ column, op: "containedBy", value });
+          return queryBuilder;
+        }),
+        range: vi.fn((start, end) => {
+          queryState.rangeStart = start;
+          queryState.rangeEnd = end;
+          return queryBuilder;
+        }),
+        order: vi.fn((column, options = {}) => {
+          queryState.ordering = { column, ...options };
+          return queryBuilder;
+        }),
+        limit: vi.fn((count) => {
+          queryState.limit = count;
+          return queryBuilder;
+        }),
+        single: vi.fn(() => {
+          queryState.single = true;
+          return queryBuilder;
+        }),
+        maybeSingle: vi.fn(() => {
+          queryState.maybeSingle = true;
+          return queryBuilder;
+        }),
+        count: vi.fn((algorithm = "exact") => {
+          queryState.shouldCount = true;
+          queryState.countAlgorithm = algorithm;
+          return queryBuilder;
+        }),
+        // Promise-like methods for execution
+        then: vi.fn((resolve) => {
+          // Return appropriate mock data based on queryState
+          let result = { data: [], error: null, count: null };
+
+          // For count queries on empty results
+          if (queryState.shouldCount) {
+            result.count = 0;
+          }
+
+          resolve(result);
+        }),
+      };
+
+      return queryBuilder;
+    }),
+  };
+
+  return client as any;
 }
 
 /**
  * Create a mock Supabase client without authenticated user
  */
 export function createUnauthenticatedSupabaseClient() {
-  const supabaseUrl = process.env.SUPABASE_URL || "https://mock.supabase.co";
-  const supabaseKey = process.env.SUPABASE_KEY || "mock-key";
+  // Create a fully mocked Supabase client without auth
+  const client = {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: null },
+        error: { message: "Not authenticated" },
+      }),
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: null },
+        error: { message: "Not authenticated" },
+      }),
+    },
+    from: vi.fn((table: string) => {
+      // Return chainable query builder mock that returns errors
+      const queryBuilder: any = {
+        select: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        update: vi.fn().mockReturnThis(),
+        upsert: vi.fn().mockReturnThis(),
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockReturnThis(),
+        gte: vi.fn().mockReturnThis(),
+        lt: vi.fn().mockReturnThis(),
+        lte: vi.fn().mockReturnThis(),
+        like: vi.fn().mockReturnThis(),
+        ilike: vi.fn().mockReturnThis(),
+        is: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        contains: vi.fn().mockReturnThis(),
+        containedBy: vi.fn().mockReturnThis(),
+        range: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        single: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockReturnThis(),
+        count: vi.fn().mockReturnThis(),
+        // Final execution methods that return auth errors
+        then: vi.fn((resolve) => resolve({
+          data: null,
+          error: { message: "Not authenticated", code: "401" }
+        })),
+      };
 
-  const client = createClient(supabaseUrl, supabaseKey);
+      // Make it return itself for chaining
+      Object.keys(queryBuilder).forEach(key => {
+        if (key !== 'then') {
+          queryBuilder[key].mockReturnValue(queryBuilder);
+        }
+      });
 
-  // Mock auth methods to return no user
-  (client.auth.getUser as any) = async () => ({
-    data: { user: null },
-    error: { message: "Not authenticated" },
-  });
+      return queryBuilder;
+    }),
+  };
 
-  (client.auth.getSession as any) = async () => ({
-    data: { session: null },
-    error: { message: "Not authenticated" },
-  });
-
-  return client;
+  return client as any;
 }
 
 /**

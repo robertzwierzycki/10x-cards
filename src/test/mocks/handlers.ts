@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+import { supabaseHandlers, testDataStore } from "./supabase-handlers";
 
 /**
  * MSW Request Handlers for API mocking
@@ -8,8 +9,18 @@ import { http, HttpResponse } from "msw";
 // Base URL for API endpoints
 const API_BASE = "/api";
 
+// Export test data store for test access
+export { testDataStore };
+
 export const handlers = [
-  // Example: Mock OpenRouter AI generation endpoint
+  // Include all Supabase handlers
+  ...supabaseHandlers,
+
+  // ========================
+  // Application API Mocks
+  // ========================
+
+  // Mock OpenRouter AI generation endpoint
   http.post(`${API_BASE}/ai/generate`, async ({ request }) => {
     const body = await request.json();
 
@@ -31,7 +42,7 @@ export const handlers = [
     );
   }),
 
-  // Example: Mock rate limit error
+  // Mock rate limit error
   http.post(`${API_BASE}/ai/generate-rate-limited`, () => {
     return HttpResponse.json(
       {
@@ -42,7 +53,7 @@ export const handlers = [
     );
   }),
 
-  // Example: Mock Supabase deck creation
+  // Mock Supabase deck creation
   http.post(`${API_BASE}/decks`, async ({ request }) => {
     const body = await request.json();
 
@@ -57,7 +68,7 @@ export const handlers = [
     );
   }),
 
-  // Example: Mock deck listing
+  // Mock deck listing
   http.get(`${API_BASE}/decks`, () => {
     return HttpResponse.json(
       {
@@ -81,6 +92,4 @@ export const handlers = [
       { status: 200 }
     );
   }),
-
-  // Add more handlers as needed for your API endpoints
 ];
