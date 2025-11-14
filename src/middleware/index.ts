@@ -31,10 +31,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // Add user to context if authenticated
   if (user) {
-    context.locals.user = {
-      id: user.id,
-      email: user.email!,
-    };
+    context.locals.user = user;
   }
 
   const url = new URL(context.request.url);

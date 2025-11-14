@@ -178,10 +178,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "550e8400-e29b-41d4-a716-446655440000",
       name: "Test Deck",
       flashcard_count: 10,
-      cards_due: 5,
       created_at: "2025-10-26T10:00:00Z",
       updated_at: "2025-10-26T11:00:00Z",
-      user_id: "user-123",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);
@@ -189,10 +187,8 @@ describe("mapToDeckCardViewModel", () => {
     expect(result).toHaveProperty("id", mockDeck.id);
     expect(result).toHaveProperty("name", mockDeck.name);
     expect(result).toHaveProperty("flashcard_count", mockDeck.flashcard_count);
-    expect(result).toHaveProperty("cards_due", mockDeck.cards_due);
     expect(result).toHaveProperty("created_at", mockDeck.created_at);
     expect(result).toHaveProperty("updated_at", mockDeck.updated_at);
-    expect(result).toHaveProperty("user_id", mockDeck.user_id);
   });
 
   it("should add relativeTime field", () => {
@@ -200,10 +196,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "550e8400-e29b-41d4-a716-446655440000",
       name: "Test Deck",
       flashcard_count: 10,
-      cards_due: 5,
       created_at: "2025-10-26T10:00:00Z",
       updated_at: "2025-10-26T11:00:00Z",
-      user_id: "user-123",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);
@@ -219,10 +213,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "550e8400-e29b-41d4-a716-446655440000",
       name: "Test Deck",
       flashcard_count: 10,
-      cards_due: 5,
       created_at: "2025-10-26T10:00:00Z",
       updated_at: "2025-10-26T11:00:00Z",
-      user_id: "user-123",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);
@@ -236,10 +228,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "550e8400-e29b-41d4-a716-446655440000",
       name: "Single Card Deck",
       flashcard_count: 1,
-      cards_due: 0,
       created_at: "2025-10-26T10:00:00Z",
       updated_at: "2025-10-26T11:00:00Z",
-      user_id: "user-123",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);
@@ -252,10 +242,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "550e8400-e29b-41d4-a716-446655440000",
       name: "Three Cards Deck",
       flashcard_count: 3,
-      cards_due: 1,
       created_at: "2025-10-26T10:00:00Z",
       updated_at: "2025-10-26T11:00:00Z",
-      user_id: "user-123",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);
@@ -268,10 +256,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "550e8400-e29b-41d4-a716-446655440000",
       name: "Empty Deck",
       flashcard_count: 0,
-      cards_due: 0,
       created_at: "2025-10-26T10:00:00Z",
       updated_at: "2025-10-26T11:00:00Z",
-      user_id: "user-123",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);
@@ -284,10 +270,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "deck-id-123",
       name: "Preserve Props Deck",
       flashcard_count: 25,
-      cards_due: 10,
       created_at: "2025-10-25T12:00:00Z",
       updated_at: "2025-10-26T09:30:00Z",
-      user_id: "user-456",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);
@@ -296,10 +280,8 @@ describe("mapToDeckCardViewModel", () => {
     expect(result.id).toBe(mockDeck.id);
     expect(result.name).toBe(mockDeck.name);
     expect(result.flashcard_count).toBe(mockDeck.flashcard_count);
-    expect(result.cards_due).toBe(mockDeck.cards_due);
     expect(result.created_at).toBe(mockDeck.created_at);
     expect(result.updated_at).toBe(mockDeck.updated_at);
-    expect(result.user_id).toBe(mockDeck.user_id);
   });
 
   it("should handle deck with large flashcard count", () => {
@@ -307,10 +289,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "550e8400-e29b-41d4-a716-446655440000",
       name: "Large Deck",
       flashcard_count: 1000,
-      cards_due: 500,
       created_at: "2025-10-26T10:00:00Z",
       updated_at: "2025-10-26T11:00:00Z",
-      user_id: "user-123",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);
@@ -323,10 +303,8 @@ describe("mapToDeckCardViewModel", () => {
       id: "550e8400-e29b-41d4-a716-446655440000",
       name: "Talia #1: Pytania & Odpowiedzi 🎓",
       flashcard_count: 15,
-      cards_due: 5,
       created_at: "2025-10-26T10:00:00Z",
       updated_at: "2025-10-26T11:00:00Z",
-      user_id: "user-123",
     };
 
     const result = mapToDeckCardViewModel(mockDeck);

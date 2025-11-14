@@ -50,7 +50,7 @@ jobs:
         run: npm ci
 
       - name: Run TypeScript check
-        run: echo "TypeScript check temporarily disabled" # npx tsc --noEmit
+        run: npx tsc --noEmit
 
   # Job 3: Test and Build
   test-and-build:

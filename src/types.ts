@@ -77,6 +77,7 @@ export interface DeckListDTO {
  */
 export interface DeckWithFlashcardsDTO extends Pick<Deck, "id" | "name" | "created_at" | "updated_at"> {
   flashcards: FlashcardDTO[];
+  flashcard_count: number;
 }
 
 /**
@@ -104,6 +105,12 @@ export interface UpdateDeckCommand {
  * Used in multiple endpoints
  */
 export type FlashcardDTO = Flashcard;
+
+/**
+ * Form data type for flashcard creation/update in UI components
+ * Re-exported from schemas for convenience
+ */
+export type { FlashcardFormData } from "./schemas/flashcard.schema";
 
 /**
  * Paginated flashcard list response

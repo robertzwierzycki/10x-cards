@@ -75,6 +75,7 @@ export class DeckService {
         created_at: data.created_at,
         updated_at: data.updated_at,
         flashcards: (data.flashcards || []) as FlashcardDTO[],
+        flashcard_count: (data.flashcards || []).length,
       };
 
       return deckDTO;

@@ -143,8 +143,8 @@ describe("cn", () => {
 
   describe("Real-world component scenarios", () => {
     it("should handle button variant classes", () => {
-      const variant = "primary";
-      const size = "lg";
+      const variant = "primary" as "primary" | "secondary";
+      const size = "lg" as "sm" | "lg";
       const result = cn(
         "btn",
         variant === "primary" && "bg-blue-500 text-white",
