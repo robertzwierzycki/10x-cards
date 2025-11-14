@@ -3,20 +3,15 @@
  * Editable flashcard suggestion with front/back fields and delete button
  */
 
-import { useCallback, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { SuggestionCardProps } from '@/types/generator.types';
+import { useCallback, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { SuggestionCardProps } from "@/types/generator.types";
 
 const MAX_CONTENT_LENGTH = 5000;
 
-export function SuggestionCard({
-  suggestion,
-  index,
-  onEdit,
-  onDelete,
-}: SuggestionCardProps) {
+export function SuggestionCard({ suggestion, index, onEdit, onDelete }: SuggestionCardProps) {
   const [frontError, setFrontError] = useState<string | null>(null);
   const [backError, setBackError] = useState<string | null>(null);
 
@@ -30,12 +25,12 @@ export function SuggestionCard({
       }
 
       if (value.trim().length === 0) {
-        setFrontError('Pole nie może być puste');
+        setFrontError("Pole nie może być puste");
       } else {
         setFrontError(null);
       }
 
-      onEdit(suggestion.id, 'front', value);
+      onEdit(suggestion.id, "front", value);
     },
     [suggestion.id, onEdit]
   );
@@ -50,12 +45,12 @@ export function SuggestionCard({
       }
 
       if (value.trim().length === 0) {
-        setBackError('Pole nie może być puste');
+        setBackError("Pole nie może być puste");
       } else {
         setBackError(null);
       }
 
-      onEdit(suggestion.id, 'back', value);
+      onEdit(suggestion.id, "back", value);
     },
     [suggestion.id, onEdit]
   );
@@ -81,16 +76,11 @@ export function SuggestionCard({
       </button>
 
       {/* Card number */}
-      <div className="text-sm font-medium text-muted-foreground">
-        Fiszka #{index + 1}
-      </div>
+      <div className="text-sm font-medium text-muted-foreground">Fiszka #{index + 1}</div>
 
       {/* Front field */}
       <div className="space-y-2">
-        <label
-          htmlFor={`front-${suggestion.id}`}
-          className="text-sm font-medium"
-        >
+        <label htmlFor={`front-${suggestion.id}`} className="text-sm font-medium">
           Przód
         </label>
         <textarea
@@ -98,14 +88,12 @@ export function SuggestionCard({
           value={suggestion.front}
           onChange={handleFrontChange}
           className={cn(
-            'min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y',
-            frontError ? 'border-destructive' : 'border-input'
+            "min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y",
+            frontError ? "border-destructive" : "border-input"
           )}
           placeholder="Pytanie lub termin..."
         />
-        {frontError && (
-          <p className="text-xs text-destructive">{frontError}</p>
-        )}
+        {frontError && <p className="text-xs text-destructive">{frontError}</p>}
         <p className="text-xs text-muted-foreground text-right">
           {suggestion.front.length}/{MAX_CONTENT_LENGTH}
         </p>
@@ -116,10 +104,7 @@ export function SuggestionCard({
 
       {/* Back field */}
       <div className="space-y-2">
-        <label
-          htmlFor={`back-${suggestion.id}`}
-          className="text-sm font-medium"
-        >
+        <label htmlFor={`back-${suggestion.id}`} className="text-sm font-medium">
           Tył
         </label>
         <textarea
@@ -127,14 +112,12 @@ export function SuggestionCard({
           value={suggestion.back}
           onChange={handleBackChange}
           className={cn(
-            'min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y',
-            backError ? 'border-destructive' : 'border-input'
+            "min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y",
+            backError ? "border-destructive" : "border-input"
           )}
           placeholder="Odpowiedź lub definicja..."
         />
-        {backError && (
-          <p className="text-xs text-destructive">{backError}</p>
-        )}
+        {backError && <p className="text-xs text-destructive">{backError}</p>}
         <p className="text-xs text-muted-foreground text-right">
           {suggestion.back.length}/{MAX_CONTENT_LENGTH}
         </p>

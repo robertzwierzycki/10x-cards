@@ -25,10 +25,10 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       // Call register API endpoint
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: data.email,
@@ -72,7 +72,6 @@ export default function RegisterForm() {
       setTimeout(() => {
         window.location.assign("/generate");
       }, 1000);
-
     } catch (error) {
       console.error("Registration error:", error);
 

@@ -11,7 +11,7 @@
  */
 
 import type { APIRoute } from "astro";
-import { HealthService } from "@/services/health.service";
+import { checkHealth } from "@/services/health.service";
 import type { HealthCheckDTO } from "@/types";
 
 // Disable prerendering for dynamic health checks
@@ -29,8 +29,8 @@ export const prerender = false;
  */
 export const GET: APIRoute = async ({ locals }) => {
   try {
-    // Perform health check using HealthService
-    const healthStatus: HealthCheckDTO = await HealthService.checkHealth(locals.supabase);
+    // Perform health check using checkHealth function
+    const healthStatus: HealthCheckDTO = await checkHealth(locals.supabase);
 
     // Determine HTTP status code based on overall health
     const statusCode = healthStatus.status === "healthy" ? 200 : 503;

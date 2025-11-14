@@ -3,13 +3,13 @@
  * Container for reviewing and editing AI-generated flashcard suggestions
  */
 
-import { useMemo } from 'react';
-import { SuggestionCard } from './SuggestionCard';
-import { DeckSelector } from './DeckSelector';
-import { ActionButtons } from './ActionButtons';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-import type { SuggestionsReviewProps } from '@/types/generator.types';
+import { useMemo } from "react";
+import { SuggestionCard } from "./SuggestionCard";
+import { DeckSelector } from "./DeckSelector";
+import { ActionButtons } from "./ActionButtons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import type { SuggestionsReviewProps } from "@/types/generator.types";
 
 export function SuggestionsReview({
   suggestions,
@@ -28,10 +28,7 @@ export function SuggestionsReview({
   isAutoSaveMode = false,
 }: SuggestionsReviewProps) {
   // Filter out deleted suggestions for display
-  const activeSuggestions = useMemo(
-    () => suggestions.filter((s) => !s.isDeleted),
-    [suggestions]
-  );
+  const activeSuggestions = useMemo(() => suggestions.filter((s) => !s.isDeleted), [suggestions]);
 
   // Check if we can save
   const canSave = useMemo(() => {
@@ -46,23 +43,19 @@ export function SuggestionsReview({
     return selectedDeckId !== null;
   }, [activeSuggestions.length, isCreatingNewDeck, newDeckName, selectedDeckId]);
 
-  const handleEdit = (id: string, field: 'front' | 'back', value: string) => {
-    onSuggestionsUpdate(
-      suggestions.map((s) => (s.id === id ? { ...s, [field]: value } : s))
-    );
+  const handleEdit = (id: string, field: "front" | "back", value: string) => {
+    onSuggestionsUpdate(suggestions.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
   };
 
   const handleDelete = (id: string) => {
-    onSuggestionsUpdate(
-      suggestions.map((s) => (s.id === id ? { ...s, isDeleted: true } : s))
-    );
+    onSuggestionsUpdate(suggestions.map((s) => (s.id === id ? { ...s, isDeleted: true } : s)));
   };
 
   const handleSave = async () => {
     if (!canSave) return;
 
     if (isCreatingNewDeck) {
-      await onSave('', newDeckName);
+      await onSave("", newDeckName);
     } else if (selectedDeckId) {
       await onSave(selectedDeckId);
     }
@@ -72,11 +65,9 @@ export function SuggestionsReview({
     <div className="space-y-6">
       {/* Header with count */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">
-          Wygenerowane fiszki
-        </h2>
+        <h2 className="text-2xl font-bold tracking-tight">Wygenerowane fiszki</h2>
         <p className="text-muted-foreground mt-1">
-          {activeSuggestions.length} {activeSuggestions.length === 1 ? 'fiszka' : 'fiszek'} do przejrzenia
+          {activeSuggestions.length} {activeSuggestions.length === 1 ? "fiszka" : "fiszek"} do przejrzenia
         </p>
       </div>
 
@@ -85,7 +76,8 @@ export function SuggestionsReview({
         <Alert variant="default" className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
           <AlertCircle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-900 dark:text-amber-100">
-            Tekst został automatycznie obcięty do 1000 znaków. Niektóre treści mogły nie zostać uwzględnione w generowaniu.
+            Tekst został automatycznie obcięty do 1000 znaków. Niektóre treści mogły nie zostać uwzględnione w
+            generowaniu.
           </AlertDescription>
         </Alert>
       )}
@@ -132,8 +124,8 @@ export function SuggestionsReview({
         <Alert className="border-blue-500/50 bg-blue-50 dark:bg-blue-950/20">
           <AlertCircle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-900 dark:text-blue-100">
-            Fiszki zostaną automatycznie dodane do talii:{' '}
-            <strong>{decks.find((d) => d.id === selectedDeckId)?.name || 'wybranej talii'}</strong>
+            Fiszki zostaną automatycznie dodane do talii:{" "}
+            <strong>{decks.find((d) => d.id === selectedDeckId)?.name || "wybranej talii"}</strong>
           </AlertDescription>
         </Alert>
       )}

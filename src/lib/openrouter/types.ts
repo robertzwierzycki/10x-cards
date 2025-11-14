@@ -8,7 +8,7 @@
  * Message structure for chat completions
  */
 export interface Message {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -17,14 +17,14 @@ export interface Message {
  */
 export interface OpenRouterOptions {
   apiKey: string;
-  baseUrl?: string;              // Default: "https://openrouter.ai/api/v1"
-  defaultModel?: string;          // Default: "openai/gpt-4o-mini"
-  maxRetries?: number;           // Default: 3
-  retryDelay?: number;           // Default: 1000ms
-  timeout?: number;              // Default: 30000ms (30 seconds)
-  maxInputLength?: number;       // Default: 1000 characters
-  defaultTemperature?: number;   // Default: 0.7
-  defaultMaxTokens?: number;     // Default: 500
+  baseUrl?: string; // Default: "https://openrouter.ai/api/v1"
+  defaultModel?: string; // Default: "openai/gpt-4o-mini"
+  maxRetries?: number; // Default: 3
+  retryDelay?: number; // Default: 1000ms
+  timeout?: number; // Default: 30000ms (30 seconds)
+  maxInputLength?: number; // Default: 1000 characters
+  defaultTemperature?: number; // Default: 0.7
+  defaultMaxTokens?: number; // Default: 500
 }
 
 /**
@@ -49,9 +49,9 @@ export interface FlashcardResponse {
  * Options for flashcard generation
  */
 export interface GenerateOptions {
-  count?: number;              // Number of flashcards to generate (default: 5, max: 10)
-  temperature?: number;        // Model temperature (default: 0.7)
-  maxTokens?: number;         // Maximum tokens in response (default: 500)
+  count?: number; // Number of flashcards to generate (default: 5, max: 10)
+  temperature?: number; // Model temperature (default: 0.7)
+  maxTokens?: number; // Maximum tokens in response (default: 500)
 }
 
 /**
@@ -71,12 +71,12 @@ export interface CompletionOptions {
  * JSON Schema structure for structured responses
  */
 export interface ResponseFormat {
-  type: 'json_schema';
+  type: "json_schema";
   json_schema: {
     name: string;
     strict: boolean;
     schema: {
-      type: 'object';
+      type: "object";
       properties: Record<string, unknown>;
       required: string[];
       additionalProperties?: boolean;
@@ -89,25 +89,25 @@ export interface ResponseFormat {
  */
 export interface FlashcardSchema extends ResponseFormat {
   json_schema: {
-    name: 'flashcard_generation';
+    name: "flashcard_generation";
     strict: true;
     schema: {
-      type: 'object';
+      type: "object";
       properties: {
         flashcards: {
-          type: 'array';
+          type: "array";
           items: {
-            type: 'object';
+            type: "object";
             properties: {
-              front: { type: 'string' };
-              back: { type: 'string' };
+              front: { type: "string" };
+              back: { type: "string" };
             };
-            required: ['front', 'back'];
+            required: ["front", "back"];
             additionalProperties: false;
           };
         };
       };
-      required: ['flashcards'];
+      required: ["flashcards"];
       additionalProperties: false;
     };
   };
@@ -119,11 +119,11 @@ export interface FlashcardSchema extends ResponseFormat {
 export interface CompletionResponse {
   id: string;
   model: string;
-  choices: Array<{
+  choices: {
     message: Message;
     finish_reason: string;
     index: number;
-  }>;
+  }[];
   usage: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -163,14 +163,14 @@ export interface RequestBody {
 export interface ApiResponse {
   id: string;
   model: string;
-  choices: Array<{
+  choices: {
     message: {
       role: string;
       content: string;
     };
     finish_reason: string;
     index: number;
-  }>;
+  }[];
   usage: {
     prompt_tokens: number;
     completion_tokens: number;

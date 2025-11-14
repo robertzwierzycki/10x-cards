@@ -13,12 +13,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { OpenRouterService } from "@/lib/openrouter";
-import {
-  OpenRouterError,
-  RateLimitError,
-  ValidationError,
-  AuthenticationError,
-} from "@/lib/openrouter/errors";
+import { OpenRouterError, RateLimitError, ValidationError, AuthenticationError } from "@/lib/openrouter/errors";
 
 export const prerender = false;
 

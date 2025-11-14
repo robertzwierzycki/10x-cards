@@ -9,10 +9,10 @@
  * - deleteDeck() - delete deck
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DeckService } from './deck.service';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/db/database.types';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { DeckService } from "./deck.service";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/db/database.types";
 
 // Mock Supabase client
 const createMockSupabaseClient = () => {
@@ -23,7 +23,7 @@ const createMockSupabaseClient = () => {
   return mock as unknown as SupabaseClient<Database>;
 };
 
-describe('DeckService', () => {
+describe("DeckService", () => {
   let deckService: DeckService;
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
@@ -32,32 +32,32 @@ describe('DeckService', () => {
     deckService = new DeckService(mockSupabase as SupabaseClient<Database>);
   });
 
-  describe('getDeckWithFlashcards', () => {
-    it('should return deck with flashcards for valid deck and user', async () => {
+  describe("getDeckWithFlashcards", () => {
+    it("should return deck with flashcards for valid deck and user", async () => {
       const mockDeckData = {
-        id: 'deck-123',
-        name: 'Test Deck',
-        created_at: '2025-10-26T10:00:00Z',
-        updated_at: '2025-10-26T11:00:00Z',
-        user_id: 'user-123',
+        id: "deck-123",
+        name: "Test Deck",
+        created_at: "2025-10-26T10:00:00Z",
+        updated_at: "2025-10-26T11:00:00Z",
+        user_id: "user-123",
         flashcards: [
           {
-            id: 'card-1',
-            deck_id: 'deck-123',
-            front: 'Question 1',
-            back: 'Answer 1',
+            id: "card-1",
+            deck_id: "deck-123",
+            front: "Question 1",
+            back: "Answer 1",
             is_ai_generated: false,
-            created_at: '2025-10-26T10:00:00Z',
-            updated_at: '2025-10-26T10:00:00Z',
+            created_at: "2025-10-26T10:00:00Z",
+            updated_at: "2025-10-26T10:00:00Z",
           },
           {
-            id: 'card-2',
-            deck_id: 'deck-123',
-            front: 'Question 2',
-            back: 'Answer 2',
+            id: "card-2",
+            deck_id: "deck-123",
+            front: "Question 2",
+            back: "Answer 2",
             is_ai_generated: true,
-            created_at: '2025-10-26T10:00:00Z',
-            updated_at: '2025-10-26T10:00:00Z',
+            created_at: "2025-10-26T10:00:00Z",
+            updated_at: "2025-10-26T10:00:00Z",
           },
         ],
       };
@@ -71,17 +71,17 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(mockChain),
       });
 
-      const result = await deckService.getDeckWithFlashcards('deck-123', 'user-123');
+      const result = await deckService.getDeckWithFlashcards("deck-123", "user-123");
 
       expect(result).not.toBeNull();
-      expect(result?.id).toBe('deck-123');
-      expect(result?.name).toBe('Test Deck');
+      expect(result?.id).toBe("deck-123");
+      expect(result?.name).toBe("Test Deck");
       expect(result?.flashcards).toHaveLength(2);
-      expect(result?.flashcards[0].front).toBe('Question 1');
+      expect(result?.flashcards[0].front).toBe("Question 1");
       expect(result?.flashcards[1].is_ai_generated).toBe(true);
     });
 
-    it('should return null when deck not found', async () => {
+    it("should return null when deck not found", async () => {
       const mockChain = {
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: null }),
@@ -91,17 +91,17 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(mockChain),
       });
 
-      const result = await deckService.getDeckWithFlashcards('nonexistent-id', 'user-123');
+      const result = await deckService.getDeckWithFlashcards("nonexistent-id", "user-123");
 
       expect(result).toBeNull();
     });
 
-    it('should return null when database error occurs', async () => {
+    it("should return null when database error occurs", async () => {
       const mockChain = {
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Database error', code: '500' },
+          error: { message: "Database error", code: "500" },
         }),
       };
 
@@ -109,18 +109,18 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(mockChain),
       });
 
-      const result = await deckService.getDeckWithFlashcards('deck-123', 'user-123');
+      const result = await deckService.getDeckWithFlashcards("deck-123", "user-123");
 
       expect(result).toBeNull();
     });
 
-    it('should return deck with empty flashcards array when no flashcards', async () => {
+    it("should return deck with empty flashcards array when no flashcards", async () => {
       const mockDeckData = {
-        id: 'deck-123',
-        name: 'Empty Deck',
-        created_at: '2025-10-26T10:00:00Z',
-        updated_at: '2025-10-26T11:00:00Z',
-        user_id: 'user-123',
+        id: "deck-123",
+        name: "Empty Deck",
+        created_at: "2025-10-26T10:00:00Z",
+        updated_at: "2025-10-26T11:00:00Z",
+        user_id: "user-123",
         flashcards: [],
       };
 
@@ -133,43 +133,43 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(mockChain),
       });
 
-      const result = await deckService.getDeckWithFlashcards('deck-123', 'user-123');
+      const result = await deckService.getDeckWithFlashcards("deck-123", "user-123");
 
       expect(result).not.toBeNull();
       expect(result?.flashcards).toEqual([]);
     });
 
-    it('should return null when unexpected error is thrown', async () => {
+    it("should return null when unexpected error is thrown", async () => {
       const mockChain = {
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockRejectedValue(new Error('Unexpected error')),
+        single: vi.fn().mockRejectedValue(new Error("Unexpected error")),
       };
 
       mockSupabase.from = vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue(mockChain),
       });
 
-      const result = await deckService.getDeckWithFlashcards('deck-123', 'user-123');
+      const result = await deckService.getDeckWithFlashcards("deck-123", "user-123");
 
       expect(result).toBeNull();
     });
   });
 
-  describe('getDecks', () => {
-    it('should return paginated list of decks', async () => {
+  describe("getDecks", () => {
+    it("should return paginated list of decks", async () => {
       const mockDecks = [
         {
-          id: 'deck-1',
-          name: 'Deck 1',
-          created_at: '2025-10-26T10:00:00Z',
-          updated_at: '2025-10-26T10:00:00Z',
+          id: "deck-1",
+          name: "Deck 1",
+          created_at: "2025-10-26T10:00:00Z",
+          updated_at: "2025-10-26T10:00:00Z",
           flashcards: [{}, {}], // 2 flashcards
         },
         {
-          id: 'deck-2',
-          name: 'Deck 2',
-          created_at: '2025-10-26T11:00:00Z',
-          updated_at: '2025-10-26T11:00:00Z',
+          id: "deck-2",
+          name: "Deck 2",
+          created_at: "2025-10-26T11:00:00Z",
+          updated_at: "2025-10-26T11:00:00Z",
           flashcards: [{}], // 1 flashcard
         },
       ];
@@ -195,22 +195,22 @@ describe('DeckService', () => {
           select: vi.fn().mockReturnValue(decksChain),
         });
 
-      const result = await deckService.getDecks('user-123', {
+      const result = await deckService.getDecks("user-123", {
         page: 1,
         limit: 20,
-        sort: 'updated_at',
-        order: 'desc',
+        sort: "updated_at",
+        order: "desc",
       });
 
       expect(result.data).toHaveLength(2);
-      expect(result.data[0].id).toBe('deck-1');
+      expect(result.data[0].id).toBe("deck-1");
       expect(result.data[0].flashcard_count).toBe(2);
       expect(result.data[1].flashcard_count).toBe(1);
       expect(result.pagination.total).toBe(10);
       expect(result.pagination.total_pages).toBe(1);
     });
 
-    it('should calculate correct pagination metadata', async () => {
+    it("should calculate correct pagination metadata", async () => {
       const countChain = {
         eq: vi.fn().mockResolvedValue({ count: 50, error: null }),
       };
@@ -230,11 +230,11 @@ describe('DeckService', () => {
           select: vi.fn().mockReturnValue(decksChain),
         });
 
-      const result = await deckService.getDecks('user-123', {
+      const result = await deckService.getDecks("user-123", {
         page: 2,
         limit: 10,
-        sort: 'name',
-        order: 'asc',
+        sort: "name",
+        order: "asc",
       });
 
       expect(result.pagination).toEqual({
@@ -245,11 +245,11 @@ describe('DeckService', () => {
       });
     });
 
-    it('should throw error when count query fails', async () => {
+    it("should throw error when count query fails", async () => {
       const countChain = {
         eq: vi.fn().mockResolvedValue({
           count: null,
-          error: { message: 'Count error', code: '500' },
+          error: { message: "Count error", code: "500" },
         }),
       };
 
@@ -258,11 +258,11 @@ describe('DeckService', () => {
       });
 
       await expect(
-        deckService.getDecks('user-123', { page: 1, limit: 20, sort: 'updated_at', order: 'desc' })
-      ).rejects.toThrow('Failed to count decks');
+        deckService.getDecks("user-123", { page: 1, limit: 20, sort: "updated_at", order: "desc" })
+      ).rejects.toThrow("Failed to count decks");
     });
 
-    it('should throw error when decks query fails', async () => {
+    it("should throw error when decks query fails", async () => {
       const countChain = {
         eq: vi.fn().mockResolvedValue({ count: 10, error: null }),
       };
@@ -272,7 +272,7 @@ describe('DeckService', () => {
         order: vi.fn().mockReturnThis(),
         range: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Query error', code: '500' },
+          error: { message: "Query error", code: "500" },
         }),
       };
 
@@ -286,11 +286,11 @@ describe('DeckService', () => {
         });
 
       await expect(
-        deckService.getDecks('user-123', { page: 1, limit: 20, sort: 'updated_at', order: 'desc' })
-      ).rejects.toThrow('Failed to retrieve decks');
+        deckService.getDecks("user-123", { page: 1, limit: 20, sort: "updated_at", order: "desc" })
+      ).rejects.toThrow("Failed to retrieve decks");
     });
 
-    it('should return empty list when user has no decks', async () => {
+    it("should return empty list when user has no decks", async () => {
       const countChain = {
         eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
       };
@@ -310,11 +310,11 @@ describe('DeckService', () => {
           select: vi.fn().mockReturnValue(decksChain),
         });
 
-      const result = await deckService.getDecks('user-123', {
+      const result = await deckService.getDecks("user-123", {
         page: 1,
         limit: 20,
-        sort: 'updated_at',
-        order: 'desc',
+        sort: "updated_at",
+        order: "desc",
       });
 
       expect(result.data).toEqual([]);
@@ -323,14 +323,14 @@ describe('DeckService', () => {
     });
   });
 
-  describe('createDeck', () => {
-    it('should create new deck successfully', async () => {
+  describe("createDeck", () => {
+    it("should create new deck successfully", async () => {
       const mockNewDeck = {
-        id: 'deck-new',
-        name: 'New Deck',
-        created_at: '2025-10-26T12:00:00Z',
-        updated_at: '2025-10-26T12:00:00Z',
-        user_id: 'user-123',
+        id: "deck-new",
+        name: "New Deck",
+        created_at: "2025-10-26T12:00:00Z",
+        updated_at: "2025-10-26T12:00:00Z",
+        user_id: "user-123",
       };
 
       // Mock uniqueness check
@@ -353,20 +353,20 @@ describe('DeckService', () => {
         })
         .mockReturnValueOnce(insertChain);
 
-      const result = await deckService.createDeck('New Deck', 'user-123');
+      const result = await deckService.createDeck("New Deck", "user-123");
 
-      expect(result.id).toBe('deck-new');
-      expect(result.name).toBe('New Deck');
+      expect(result.id).toBe("deck-new");
+      expect(result.name).toBe("New Deck");
       expect(result.flashcard_count).toBe(0);
     });
 
-    it('should trim deck name before creating', async () => {
+    it("should trim deck name before creating", async () => {
       const mockNewDeck = {
-        id: 'deck-new',
-        name: 'Trimmed Name',
-        created_at: '2025-10-26T12:00:00Z',
-        updated_at: '2025-10-26T12:00:00Z',
-        user_id: 'user-123',
+        id: "deck-new",
+        name: "Trimmed Name",
+        created_at: "2025-10-26T12:00:00Z",
+        updated_at: "2025-10-26T12:00:00Z",
+        user_id: "user-123",
       };
 
       const checkChain = {
@@ -387,16 +387,16 @@ describe('DeckService', () => {
         })
         .mockReturnValueOnce(insertChain);
 
-      const result = await deckService.createDeck('  Trimmed Name  ', 'user-123');
+      const result = await deckService.createDeck("  Trimmed Name  ", "user-123");
 
-      expect(result.name).toBe('Trimmed Name');
+      expect(result.name).toBe("Trimmed Name");
     });
 
-    it('should throw error when deck name already exists', async () => {
+    it("should throw error when deck name already exists", async () => {
       const checkChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'existing-deck' },
+          data: { id: "existing-deck" },
           error: null,
         }),
       };
@@ -405,17 +405,17 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(checkChain),
       });
 
-      await expect(deckService.createDeck('Existing Deck', 'user-123')).rejects.toThrow(
-        'Deck with this name already exists'
+      await expect(deckService.createDeck("Existing Deck", "user-123")).rejects.toThrow(
+        "Deck with this name already exists"
       );
     });
 
-    it('should throw error when uniqueness check fails', async () => {
+    it("should throw error when uniqueness check fails", async () => {
       const checkChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Check error', code: '500' },
+          error: { message: "Check error", code: "500" },
         }),
       };
 
@@ -423,12 +423,12 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(checkChain),
       });
 
-      await expect(deckService.createDeck('New Deck', 'user-123')).rejects.toThrow(
-        'Failed to verify deck name uniqueness'
+      await expect(deckService.createDeck("New Deck", "user-123")).rejects.toThrow(
+        "Failed to verify deck name uniqueness"
       );
     });
 
-    it('should throw error when insert fails', async () => {
+    it("should throw error when insert fails", async () => {
       const checkChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
@@ -439,7 +439,7 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Insert error', code: '500' },
+          error: { message: "Insert error", code: "500" },
         }),
       };
 
@@ -450,25 +450,25 @@ describe('DeckService', () => {
         })
         .mockReturnValueOnce(insertChain);
 
-      await expect(deckService.createDeck('New Deck', 'user-123')).rejects.toThrow('Failed to create deck');
+      await expect(deckService.createDeck("New Deck", "user-123")).rejects.toThrow("Failed to create deck");
     });
   });
 
-  describe('updateDeck', () => {
-    it('should update deck name successfully', async () => {
+  describe("updateDeck", () => {
+    it("should update deck name successfully", async () => {
       const mockUpdatedDeck = {
-        id: 'deck-123',
-        name: 'Updated Name',
-        created_at: '2025-10-26T10:00:00Z',
-        updated_at: '2025-10-26T12:00:00Z',
-        user_id: 'user-123',
+        id: "deck-123",
+        name: "Updated Name",
+        created_at: "2025-10-26T10:00:00Z",
+        updated_at: "2025-10-26T12:00:00Z",
+        user_id: "user-123",
       };
 
       // Mock fetch existing deck
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'deck-123', name: 'Old Name' },
+          data: { id: "deck-123", name: "Old Name" },
           error: null,
         }),
       };
@@ -506,14 +506,14 @@ describe('DeckService', () => {
           select: vi.fn().mockReturnValue(countChain),
         });
 
-      const result = await deckService.updateDeck('deck-123', 'Updated Name', 'user-123');
+      const result = await deckService.updateDeck("deck-123", "Updated Name", "user-123");
 
       expect(result).not.toBeNull();
-      expect(result?.name).toBe('Updated Name');
+      expect(result?.name).toBe("Updated Name");
       expect(result?.flashcard_count).toBe(5);
     });
 
-    it('should return null when deck not found', async () => {
+    it("should return null when deck not found", async () => {
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
@@ -523,17 +523,17 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(fetchChain),
       });
 
-      const result = await deckService.updateDeck('nonexistent-id', 'New Name', 'user-123');
+      const result = await deckService.updateDeck("nonexistent-id", "New Name", "user-123");
 
       expect(result).toBeNull();
     });
 
-    it('should throw error when fetch fails during update', async () => {
+    it("should throw error when fetch fails during update", async () => {
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Fetch error', code: '500' },
+          error: { message: "Fetch error", code: "500" },
         }),
       };
 
@@ -541,16 +541,14 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(fetchChain),
       });
 
-      await expect(deckService.updateDeck('deck-123', 'New Name', 'user-123')).rejects.toThrow(
-        'Failed to fetch deck'
-      );
+      await expect(deckService.updateDeck("deck-123", "New Name", "user-123")).rejects.toThrow("Failed to fetch deck");
     });
 
-    it('should throw error when new name conflicts with existing deck', async () => {
+    it("should throw error when new name conflicts with existing deck", async () => {
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'deck-123', name: 'Old Name' },
+          data: { id: "deck-123", name: "Old Name" },
           error: null,
         }),
       };
@@ -559,7 +557,7 @@ describe('DeckService', () => {
         eq: vi.fn().mockReturnThis(),
         neq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'other-deck' },
+          data: { id: "other-deck" },
           error: null,
         }),
       };
@@ -573,24 +571,24 @@ describe('DeckService', () => {
           select: vi.fn().mockReturnValue(duplicateChain),
         });
 
-      await expect(deckService.updateDeck('deck-123', 'Duplicate Name', 'user-123')).rejects.toThrow(
-        'Deck with this name already exists'
+      await expect(deckService.updateDeck("deck-123", "Duplicate Name", "user-123")).rejects.toThrow(
+        "Deck with this name already exists"
       );
     });
 
-    it('should trim deck name before updating', async () => {
+    it("should trim deck name before updating", async () => {
       const mockUpdatedDeck = {
-        id: 'deck-123',
-        name: 'Trimmed Name',
-        created_at: '2025-10-26T10:00:00Z',
-        updated_at: '2025-10-26T12:00:00Z',
-        user_id: 'user-123',
+        id: "deck-123",
+        name: "Trimmed Name",
+        created_at: "2025-10-26T10:00:00Z",
+        updated_at: "2025-10-26T12:00:00Z",
+        user_id: "user-123",
       };
 
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'deck-123', name: 'Old Name' },
+          data: { id: "deck-123", name: "Old Name" },
           error: null,
         }),
       };
@@ -625,16 +623,16 @@ describe('DeckService', () => {
           select: vi.fn().mockReturnValue(countChain),
         });
 
-      const result = await deckService.updateDeck('deck-123', '  Trimmed Name  ', 'user-123');
+      const result = await deckService.updateDeck("deck-123", "  Trimmed Name  ", "user-123");
 
-      expect(result?.name).toBe('Trimmed Name');
+      expect(result?.name).toBe("Trimmed Name");
     });
 
-    it('should throw error when uniqueness check fails', async () => {
+    it("should throw error when uniqueness check fails", async () => {
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'deck-123', name: 'Old Name' },
+          data: { id: "deck-123", name: "Old Name" },
           error: null,
         }),
       };
@@ -644,7 +642,7 @@ describe('DeckService', () => {
         neq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Uniqueness check error', code: '500' },
+          error: { message: "Uniqueness check error", code: "500" },
         }),
       };
 
@@ -657,16 +655,16 @@ describe('DeckService', () => {
           select: vi.fn().mockReturnValue(duplicateChain),
         });
 
-      await expect(deckService.updateDeck('deck-123', 'New Name', 'user-123')).rejects.toThrow(
-        'Failed to verify deck name uniqueness'
+      await expect(deckService.updateDeck("deck-123", "New Name", "user-123")).rejects.toThrow(
+        "Failed to verify deck name uniqueness"
       );
     });
 
-    it('should throw error when update operation fails', async () => {
+    it("should throw error when update operation fails", async () => {
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'deck-123', name: 'Old Name' },
+          data: { id: "deck-123", name: "Old Name" },
           error: null,
         }),
       };
@@ -683,7 +681,7 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Update failed', code: '500' },
+          error: { message: "Update failed", code: "500" },
         }),
       };
 
@@ -697,24 +695,24 @@ describe('DeckService', () => {
         })
         .mockReturnValueOnce(updateChain);
 
-      await expect(deckService.updateDeck('deck-123', 'Updated Name', 'user-123')).rejects.toThrow(
-        'Failed to update deck'
+      await expect(deckService.updateDeck("deck-123", "Updated Name", "user-123")).rejects.toThrow(
+        "Failed to update deck"
       );
     });
 
-    it('should handle flashcard count error gracefully', async () => {
+    it("should handle flashcard count error gracefully", async () => {
       const mockUpdatedDeck = {
-        id: 'deck-123',
-        name: 'Updated Name',
-        created_at: '2025-10-26T10:00:00Z',
-        updated_at: '2025-10-26T12:00:00Z',
-        user_id: 'user-123',
+        id: "deck-123",
+        name: "Updated Name",
+        created_at: "2025-10-26T10:00:00Z",
+        updated_at: "2025-10-26T12:00:00Z",
+        user_id: "user-123",
       };
 
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'deck-123', name: 'Old Name' },
+          data: { id: "deck-123", name: "Old Name" },
           error: null,
         }),
       };
@@ -736,7 +734,7 @@ describe('DeckService', () => {
       const countChain = {
         eq: vi.fn().mockResolvedValue({
           count: null,
-          error: { message: 'Count error', code: '500' },
+          error: { message: "Count error", code: "500" },
         }),
       };
 
@@ -753,22 +751,22 @@ describe('DeckService', () => {
           select: vi.fn().mockReturnValue(countChain),
         });
 
-      const result = await deckService.updateDeck('deck-123', 'Updated Name', 'user-123');
+      const result = await deckService.updateDeck("deck-123", "Updated Name", "user-123");
 
       // Should still return result with flashcard_count = 0 when count fails
       expect(result).not.toBeNull();
-      expect(result?.name).toBe('Updated Name');
+      expect(result?.name).toBe("Updated Name");
       expect(result?.flashcard_count).toBe(0);
     });
   });
 
-  describe('deleteDeck', () => {
-    it('should delete deck successfully', async () => {
+  describe("deleteDeck", () => {
+    it("should delete deck successfully", async () => {
       // Mock fetch existing deck
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'deck-123' },
+          data: { id: "deck-123" },
           error: null,
         }),
       };
@@ -788,12 +786,12 @@ describe('DeckService', () => {
         })
         .mockReturnValueOnce(deleteChain);
 
-      const result = await deckService.deleteDeck('deck-123', 'user-123');
+      const result = await deckService.deleteDeck("deck-123", "user-123");
 
       expect(result).toBe(true);
     });
 
-    it('should return false when deck not found', async () => {
+    it("should return false when deck not found", async () => {
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
@@ -803,17 +801,17 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(fetchChain),
       });
 
-      const result = await deckService.deleteDeck('nonexistent-id', 'user-123');
+      const result = await deckService.deleteDeck("nonexistent-id", "user-123");
 
       expect(result).toBe(false);
     });
 
-    it('should throw error when fetch fails', async () => {
+    it("should throw error when fetch fails", async () => {
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Fetch error', code: '500' },
+          error: { message: "Fetch error", code: "500" },
         }),
       };
 
@@ -821,14 +819,14 @@ describe('DeckService', () => {
         select: vi.fn().mockReturnValue(fetchChain),
       });
 
-      await expect(deckService.deleteDeck('deck-123', 'user-123')).rejects.toThrow('Failed to fetch deck');
+      await expect(deckService.deleteDeck("deck-123", "user-123")).rejects.toThrow("Failed to fetch deck");
     });
 
-    it('should throw error when delete fails', async () => {
+    it("should throw error when delete fails", async () => {
       const fetchChain = {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'deck-123' },
+          data: { id: "deck-123" },
           error: null,
         }),
       };
@@ -840,7 +838,7 @@ describe('DeckService', () => {
       };
       // Last eq() call returns the error
       deleteChain.eq.mockReturnValueOnce(deleteChain).mockResolvedValueOnce({
-        error: { message: 'Delete error', code: '500' },
+        error: { message: "Delete error", code: "500" },
       });
 
       mockSupabase.from = vi
@@ -850,7 +848,7 @@ describe('DeckService', () => {
         })
         .mockReturnValueOnce(deleteChain);
 
-      await expect(deckService.deleteDeck('deck-123', 'user-123')).rejects.toThrow('Failed to delete deck');
+      await expect(deckService.deleteDeck("deck-123", "user-123")).rejects.toThrow("Failed to delete deck");
     });
   });
 });

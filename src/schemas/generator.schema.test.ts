@@ -9,28 +9,28 @@
  * - suggestionsArraySchema - array of suggestions validation
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 import {
   textInputSchema,
   flashcardContentSchema,
   deckNameSchema,
   editableSuggestionSchema,
   suggestionsArraySchema,
-} from './generator.schema';
+} from "./generator.schema";
 
-describe('textInputSchema', () => {
-  describe('Valid input', () => {
-    it('should validate minimum length text', () => {
-      const result = textInputSchema.safeParse('A');
+describe("textInputSchema", () => {
+  describe("Valid input", () => {
+    it("should validate minimum length text", () => {
+      const result = textInputSchema.safeParse("A");
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toBe('A');
+        expect(result.data).toBe("A");
       }
     });
 
-    it('should validate typical text', () => {
-      const text = 'This is a sample text for generating flashcards.';
+    it("should validate typical text", () => {
+      const text = "This is a sample text for generating flashcards.";
       const result = textInputSchema.safeParse(text);
 
       expect(result.success).toBe(true);
@@ -39,17 +39,17 @@ describe('textInputSchema', () => {
       }
     });
 
-    it('should trim whitespace', () => {
-      const result = textInputSchema.safeParse('  Text with spaces  ');
+    it("should trim whitespace", () => {
+      const result = textInputSchema.safeParse("  Text with spaces  ");
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toBe('Text with spaces');
+        expect(result.data).toBe("Text with spaces");
       }
     });
 
-    it('should accept text with exactly 1000 characters', () => {
-      const maxText = 'x'.repeat(1000);
+    it("should accept text with exactly 1000 characters", () => {
+      const maxText = "x".repeat(1000);
       const result = textInputSchema.safeParse(maxText);
 
       expect(result.success).toBe(true);
@@ -59,50 +59,50 @@ describe('textInputSchema', () => {
     });
   });
 
-  describe('Invalid input', () => {
-    it('should reject empty string with Polish error', () => {
-      const result = textInputSchema.safeParse('');
+  describe("Invalid input", () => {
+    it("should reject empty string with Polish error", () => {
+      const result = textInputSchema.safeParse("");
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Tekst nie może być pusty');
+        expect(result.error.errors[0].message).toBe("Tekst nie może być pusty");
       }
     });
 
-    it('should reject text exceeding 1000 characters with Polish error', () => {
-      const tooLong = 'y'.repeat(1001);
+    it("should reject text exceeding 1000 characters with Polish error", () => {
+      const tooLong = "y".repeat(1001);
       const result = textInputSchema.safeParse(tooLong);
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Tekst nie może przekraczać 1000 znaków');
+        expect(result.error.errors[0].message).toBe("Tekst nie może przekraczać 1000 znaków");
       }
     });
 
-    it('should trim whitespace-only to empty and reject', () => {
-      const result = textInputSchema.safeParse('   ');
+    it("should trim whitespace-only to empty and reject", () => {
+      const result = textInputSchema.safeParse("   ");
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Tekst nie może być pusty');
+        expect(result.error.errors[0].message).toBe("Tekst nie może być pusty");
       }
     });
   });
 });
 
-describe('flashcardContentSchema', () => {
-  describe('Valid content', () => {
-    it('should validate minimum length content', () => {
-      const result = flashcardContentSchema.safeParse('Q');
+describe("flashcardContentSchema", () => {
+  describe("Valid content", () => {
+    it("should validate minimum length content", () => {
+      const result = flashcardContentSchema.safeParse("Q");
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toBe('Q');
+        expect(result.data).toBe("Q");
       }
     });
 
-    it('should validate typical flashcard content', () => {
-      const content = 'What is the capital of France?';
+    it("should validate typical flashcard content", () => {
+      const content = "What is the capital of France?";
       const result = flashcardContentSchema.safeParse(content);
 
       expect(result.success).toBe(true);
@@ -111,17 +111,17 @@ describe('flashcardContentSchema', () => {
       }
     });
 
-    it('should trim whitespace', () => {
-      const result = flashcardContentSchema.safeParse('  Content  ');
+    it("should trim whitespace", () => {
+      const result = flashcardContentSchema.safeParse("  Content  ");
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toBe('Content');
+        expect(result.data).toBe("Content");
       }
     });
 
-    it('should accept content with exactly 5000 characters', () => {
-      const maxContent = 'a'.repeat(5000);
+    it("should accept content with exactly 5000 characters", () => {
+      const maxContent = "a".repeat(5000);
       const result = flashcardContentSchema.safeParse(maxContent);
 
       expect(result.success).toBe(true);
@@ -130,8 +130,8 @@ describe('flashcardContentSchema', () => {
       }
     });
 
-    it('should handle multi-line content', () => {
-      const multiLine = 'Line 1\nLine 2\nLine 3';
+    it("should handle multi-line content", () => {
+      const multiLine = "Line 1\nLine 2\nLine 3";
       const result = flashcardContentSchema.safeParse(multiLine);
 
       expect(result.success).toBe(true);
@@ -141,50 +141,50 @@ describe('flashcardContentSchema', () => {
     });
   });
 
-  describe('Invalid content', () => {
-    it('should reject empty string with Polish error', () => {
-      const result = flashcardContentSchema.safeParse('');
+  describe("Invalid content", () => {
+    it("should reject empty string with Polish error", () => {
+      const result = flashcardContentSchema.safeParse("");
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Pole nie może być puste');
+        expect(result.error.errors[0].message).toBe("Pole nie może być puste");
       }
     });
 
-    it('should reject content exceeding 5000 characters with Polish error', () => {
-      const tooLong = 'b'.repeat(5001);
+    it("should reject content exceeding 5000 characters with Polish error", () => {
+      const tooLong = "b".repeat(5001);
       const result = flashcardContentSchema.safeParse(tooLong);
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Pole nie może przekraczać 5000 znaków');
+        expect(result.error.errors[0].message).toBe("Pole nie może przekraczać 5000 znaków");
       }
     });
 
-    it('should trim whitespace-only to empty and reject', () => {
-      const result = flashcardContentSchema.safeParse('   ');
+    it("should trim whitespace-only to empty and reject", () => {
+      const result = flashcardContentSchema.safeParse("   ");
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Pole nie może być puste');
+        expect(result.error.errors[0].message).toBe("Pole nie może być puste");
       }
     });
   });
 });
 
-describe('deckNameSchema', () => {
-  describe('Valid deck names', () => {
-    it('should validate minimum length name', () => {
-      const result = deckNameSchema.safeParse('A');
+describe("deckNameSchema", () => {
+  describe("Valid deck names", () => {
+    it("should validate minimum length name", () => {
+      const result = deckNameSchema.safeParse("A");
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toBe('A');
+        expect(result.data).toBe("A");
       }
     });
 
-    it('should validate typical deck name', () => {
-      const name = 'My Flashcards Deck';
+    it("should validate typical deck name", () => {
+      const name = "My Flashcards Deck";
       const result = deckNameSchema.safeParse(name);
 
       expect(result.success).toBe(true);
@@ -193,17 +193,17 @@ describe('deckNameSchema', () => {
       }
     });
 
-    it('should trim whitespace', () => {
-      const result = deckNameSchema.safeParse('  Deck Name  ');
+    it("should trim whitespace", () => {
+      const result = deckNameSchema.safeParse("  Deck Name  ");
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toBe('Deck Name');
+        expect(result.data).toBe("Deck Name");
       }
     });
 
-    it('should accept name with exactly 255 characters', () => {
-      const maxName = 'x'.repeat(255);
+    it("should accept name with exactly 255 characters", () => {
+      const maxName = "x".repeat(255);
       const result = deckNameSchema.safeParse(maxName);
 
       expect(result.success).toBe(true);
@@ -212,8 +212,8 @@ describe('deckNameSchema', () => {
       }
     });
 
-    it('should handle Polish characters', () => {
-      const polishName = 'Talia z polskimi znakami: ąćęłńóśźż';
+    it("should handle Polish characters", () => {
+      const polishName = "Talia z polskimi znakami: ąćęłńóśźż";
       const result = deckNameSchema.safeParse(polishName);
 
       expect(result.success).toBe(true);
@@ -223,44 +223,44 @@ describe('deckNameSchema', () => {
     });
   });
 
-  describe('Invalid deck names', () => {
-    it('should reject empty string with Polish error', () => {
-      const result = deckNameSchema.safeParse('');
+  describe("Invalid deck names", () => {
+    it("should reject empty string with Polish error", () => {
+      const result = deckNameSchema.safeParse("");
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Nazwa talii nie może być pusta');
+        expect(result.error.errors[0].message).toBe("Nazwa talii nie może być pusta");
       }
     });
 
-    it('should reject name exceeding 255 characters with Polish error', () => {
-      const tooLong = 'y'.repeat(256);
+    it("should reject name exceeding 255 characters with Polish error", () => {
+      const tooLong = "y".repeat(256);
       const result = deckNameSchema.safeParse(tooLong);
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Nazwa talii nie może przekraczać 255 znaków');
+        expect(result.error.errors[0].message).toBe("Nazwa talii nie może przekraczać 255 znaków");
       }
     });
 
-    it('should trim whitespace-only to empty and reject', () => {
-      const result = deckNameSchema.safeParse('   ');
+    it("should trim whitespace-only to empty and reject", () => {
+      const result = deckNameSchema.safeParse("   ");
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Nazwa talii nie może być pusta');
+        expect(result.error.errors[0].message).toBe("Nazwa talii nie może być pusta");
       }
     });
   });
 });
 
-describe('editableSuggestionSchema', () => {
-  describe('Valid suggestions', () => {
-    it('should validate complete suggestion object', () => {
+describe("editableSuggestionSchema", () => {
+  describe("Valid suggestions", () => {
+    it("should validate complete suggestion object", () => {
       const suggestion = {
-        id: 'suggestion-1',
-        front: 'Question text',
-        back: 'Answer text',
+        id: "suggestion-1",
+        front: "Question text",
+        back: "Answer text",
         isDeleted: false,
       };
       const result = editableSuggestionSchema.safeParse(suggestion);
@@ -271,11 +271,11 @@ describe('editableSuggestionSchema', () => {
       }
     });
 
-    it('should validate suggestion with isDeleted true', () => {
+    it("should validate suggestion with isDeleted true", () => {
       const suggestion = {
-        id: 'suggestion-2',
-        front: 'Question',
-        back: 'Answer',
+        id: "suggestion-2",
+        front: "Question",
+        back: "Answer",
         isDeleted: true,
       };
       const result = editableSuggestionSchema.safeParse(suggestion);
@@ -286,27 +286,27 @@ describe('editableSuggestionSchema', () => {
       }
     });
 
-    it('should trim whitespace from front and back', () => {
+    it("should trim whitespace from front and back", () => {
       const suggestion = {
-        id: 'suggestion-3',
-        front: '  Question with spaces  ',
-        back: '  Answer with spaces  ',
+        id: "suggestion-3",
+        front: "  Question with spaces  ",
+        back: "  Answer with spaces  ",
         isDeleted: false,
       };
       const result = editableSuggestionSchema.safeParse(suggestion);
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.front).toBe('Question with spaces');
-        expect(result.data.back).toBe('Answer with spaces');
+        expect(result.data.front).toBe("Question with spaces");
+        expect(result.data.back).toBe("Answer with spaces");
       }
     });
 
-    it('should validate with UUID as id', () => {
+    it("should validate with UUID as id", () => {
       const suggestion = {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        front: 'Q',
-        back: 'A',
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        front: "Q",
+        back: "A",
         isDeleted: false,
       };
       const result = editableSuggestionSchema.safeParse(suggestion);
@@ -315,76 +315,76 @@ describe('editableSuggestionSchema', () => {
     });
   });
 
-  describe('Invalid suggestions', () => {
-    it('should reject missing id field', () => {
+  describe("Invalid suggestions", () => {
+    it("should reject missing id field", () => {
       const result = editableSuggestionSchema.safeParse({
-        front: 'Question',
-        back: 'Answer',
+        front: "Question",
+        back: "Answer",
         isDeleted: false,
       });
 
       expect(result.success).toBe(false);
     });
 
-    it('should reject empty front', () => {
+    it("should reject empty front", () => {
       const result = editableSuggestionSchema.safeParse({
-        id: 'suggestion-1',
-        front: '',
-        back: 'Answer',
+        id: "suggestion-1",
+        front: "",
+        back: "Answer",
         isDeleted: false,
       });
 
       expect(result.success).toBe(false);
     });
 
-    it('should reject empty back', () => {
+    it("should reject empty back", () => {
       const result = editableSuggestionSchema.safeParse({
-        id: 'suggestion-1',
-        front: 'Question',
-        back: '',
+        id: "suggestion-1",
+        front: "Question",
+        back: "",
         isDeleted: false,
       });
 
       expect(result.success).toBe(false);
     });
 
-    it('should reject missing isDeleted field', () => {
+    it("should reject missing isDeleted field", () => {
       const result = editableSuggestionSchema.safeParse({
-        id: 'suggestion-1',
-        front: 'Question',
-        back: 'Answer',
+        id: "suggestion-1",
+        front: "Question",
+        back: "Answer",
       });
 
       expect(result.success).toBe(false);
     });
 
-    it('should reject non-boolean isDeleted', () => {
+    it("should reject non-boolean isDeleted", () => {
       const result = editableSuggestionSchema.safeParse({
-        id: 'suggestion-1',
-        front: 'Question',
-        back: 'Answer',
-        isDeleted: 'false',
+        id: "suggestion-1",
+        front: "Question",
+        back: "Answer",
+        isDeleted: "false",
       });
 
       expect(result.success).toBe(false);
     });
 
-    it('should reject front exceeding 5000 characters', () => {
+    it("should reject front exceeding 5000 characters", () => {
       const result = editableSuggestionSchema.safeParse({
-        id: 'suggestion-1',
-        front: 'x'.repeat(5001),
-        back: 'Answer',
+        id: "suggestion-1",
+        front: "x".repeat(5001),
+        back: "Answer",
         isDeleted: false,
       });
 
       expect(result.success).toBe(false);
     });
 
-    it('should reject back exceeding 5000 characters', () => {
+    it("should reject back exceeding 5000 characters", () => {
       const result = editableSuggestionSchema.safeParse({
-        id: 'suggestion-1',
-        front: 'Question',
-        back: 'y'.repeat(5001),
+        id: "suggestion-1",
+        front: "Question",
+        back: "y".repeat(5001),
         isDeleted: false,
       });
 
@@ -393,14 +393,14 @@ describe('editableSuggestionSchema', () => {
   });
 });
 
-describe('suggestionsArraySchema', () => {
-  describe('Valid arrays', () => {
-    it('should validate array with single suggestion', () => {
+describe("suggestionsArraySchema", () => {
+  describe("Valid arrays", () => {
+    it("should validate array with single suggestion", () => {
       const suggestions = [
         {
-          id: 'suggestion-1',
-          front: 'Question 1',
-          back: 'Answer 1',
+          id: "suggestion-1",
+          front: "Question 1",
+          back: "Answer 1",
           isDeleted: false,
         },
       ];
@@ -412,24 +412,24 @@ describe('suggestionsArraySchema', () => {
       }
     });
 
-    it('should validate array with multiple suggestions', () => {
+    it("should validate array with multiple suggestions", () => {
       const suggestions = [
         {
-          id: 'suggestion-1',
-          front: 'Question 1',
-          back: 'Answer 1',
+          id: "suggestion-1",
+          front: "Question 1",
+          back: "Answer 1",
           isDeleted: false,
         },
         {
-          id: 'suggestion-2',
-          front: 'Question 2',
-          back: 'Answer 2',
+          id: "suggestion-2",
+          front: "Question 2",
+          back: "Answer 2",
           isDeleted: false,
         },
         {
-          id: 'suggestion-3',
-          front: 'Question 3',
-          back: 'Answer 3',
+          id: "suggestion-3",
+          front: "Question 3",
+          back: "Answer 3",
           isDeleted: true,
         },
       ];
@@ -441,18 +441,18 @@ describe('suggestionsArraySchema', () => {
       }
     });
 
-    it('should validate array with mix of deleted and non-deleted', () => {
+    it("should validate array with mix of deleted and non-deleted", () => {
       const suggestions = [
         {
-          id: 'suggestion-1',
-          front: 'Q1',
-          back: 'A1',
+          id: "suggestion-1",
+          front: "Q1",
+          back: "A1",
           isDeleted: true,
         },
         {
-          id: 'suggestion-2',
-          front: 'Q2',
-          back: 'A2',
+          id: "suggestion-2",
+          front: "Q2",
+          back: "A2",
           isDeleted: false,
         },
       ];
@@ -462,22 +462,22 @@ describe('suggestionsArraySchema', () => {
     });
   });
 
-  describe('Invalid arrays', () => {
-    it('should reject empty array with Polish error', () => {
+  describe("Invalid arrays", () => {
+    it("should reject empty array with Polish error", () => {
       const result = suggestionsArraySchema.safeParse([]);
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Musisz mieć przynajmniej jedną fiszkę');
+        expect(result.error.errors[0].message).toBe("Musisz mieć przynajmniej jedną fiszkę");
       }
     });
 
-    it('should reject array with invalid suggestion', () => {
+    it("should reject array with invalid suggestion", () => {
       const suggestions = [
         {
-          id: 'suggestion-1',
-          front: '', // Invalid empty front
-          back: 'Answer',
+          id: "suggestion-1",
+          front: "", // Invalid empty front
+          back: "Answer",
           isDeleted: false,
         },
       ];
@@ -486,11 +486,11 @@ describe('suggestionsArraySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject array with partial suggestion objects', () => {
+    it("should reject array with partial suggestion objects", () => {
       const suggestions = [
         {
-          id: 'suggestion-1',
-          front: 'Question',
+          id: "suggestion-1",
+          front: "Question",
           // Missing back and isDeleted
         },
       ];
@@ -499,32 +499,32 @@ describe('suggestionsArraySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject non-array value', () => {
+    it("should reject non-array value", () => {
       const result = suggestionsArraySchema.safeParse({
-        id: 'suggestion-1',
-        front: 'Question',
-        back: 'Answer',
+        id: "suggestion-1",
+        front: "Question",
+        back: "Answer",
         isDeleted: false,
       });
 
       expect(result.success).toBe(false);
     });
 
-    it('should reject null', () => {
+    it("should reject null", () => {
       const result = suggestionsArraySchema.safeParse(null);
 
       expect(result.success).toBe(false);
     });
 
-    it('should reject undefined', () => {
+    it("should reject undefined", () => {
       const result = suggestionsArraySchema.safeParse(undefined);
 
       expect(result.success).toBe(false);
     });
   });
 
-  describe('Edge cases', () => {
-    it('should validate array with 10 suggestions', () => {
+  describe("Edge cases", () => {
+    it("should validate array with 10 suggestions", () => {
       const suggestions = Array.from({ length: 10 }, (_, i) => ({
         id: `suggestion-${i}`,
         front: `Question ${i}`,
@@ -539,18 +539,18 @@ describe('suggestionsArraySchema', () => {
       }
     });
 
-    it('should validate array with all deleted suggestions', () => {
+    it("should validate array with all deleted suggestions", () => {
       const suggestions = [
         {
-          id: 'suggestion-1',
-          front: 'Q1',
-          back: 'A1',
+          id: "suggestion-1",
+          front: "Q1",
+          back: "A1",
           isDeleted: true,
         },
         {
-          id: 'suggestion-2',
-          front: 'Q2',
-          back: 'A2',
+          id: "suggestion-2",
+          front: "Q2",
+          back: "A2",
           isDeleted: true,
         },
       ];

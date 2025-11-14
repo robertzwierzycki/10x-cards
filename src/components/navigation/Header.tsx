@@ -57,9 +57,7 @@ export function Header({ userEmail, currentPath = "/" }: HeaderProps) {
                   href={link.href}
                   className={cn(
                     "text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm",
-                    link.isActive
-                      ? "text-primary font-semibold"
-                      : "text-muted-foreground"
+                    link.isActive ? "text-primary font-semibold" : "text-muted-foreground"
                   )}
                 >
                   {link.label}
@@ -76,9 +74,7 @@ export function Header({ userEmail, currentPath = "/" }: HeaderProps) {
                 href={link.href}
                 className={cn(
                   "text-xs font-medium transition-colors hover:text-primary",
-                  link.isActive
-                    ? "text-primary font-semibold"
-                    : "text-muted-foreground"
+                  link.isActive ? "text-primary font-semibold" : "text-muted-foreground"
                 )}
               >
                 {link.label}

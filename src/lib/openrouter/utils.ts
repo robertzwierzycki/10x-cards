@@ -5,7 +5,7 @@
  * input truncation, caching, hashing, and other common operations.
  */
 
-import type { TruncationResult, Message, FlashcardSchema } from './types';
+import type { TruncationResult, Message, FlashcardSchema } from "./types";
 
 /**
  * Truncates input text to maximum allowed length while preserving word boundaries
@@ -14,9 +14,9 @@ import type { TruncationResult, Message, FlashcardSchema } from './types';
  * @param maxLength - Maximum allowed length (default: 1000)
  * @returns Object containing truncated text and truncation flag
  */
-export function truncateInput(input: string, maxLength: number = 1000): TruncationResult {
+export function truncateInput(input: string, maxLength = 1000): TruncationResult {
   if (!input) {
-    return { text: '', truncated: false };
+    return { text: "", truncated: false };
   }
 
   const trimmedInput = input.trim();
@@ -27,7 +27,7 @@ export function truncateInput(input: string, maxLength: number = 1000): Truncati
 
   // Find the last space before the max length to avoid cutting words
   let truncateAt = maxLength;
-  const lastSpace = trimmedInput.lastIndexOf(' ', maxLength);
+  const lastSpace = trimmedInput.lastIndexOf(" ", maxLength);
 
   if (lastSpace > maxLength * 0.8) {
     // Only use word boundary if it's not too far back (at least 80% of max length)
@@ -51,9 +51,9 @@ export function truncateInput(input: string, maxLength: number = 1000): Truncati
 export async function generateCacheKey(input: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(input.trim().toLowerCase());
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
   return hashHex;
 }
 
@@ -84,14 +84,14 @@ Format your response as a JSON object with a "flashcards" array containing objec
  * @param count - Number of flashcards to generate
  * @returns Array of messages for the API
  */
-export function buildMessages(input: string, count: number = 5): Message[] {
+export function buildMessages(input: string, count = 5): Message[] {
   return [
     {
-      role: 'system',
+      role: "system",
       content: buildSystemPrompt(),
     },
     {
-      role: 'user',
+      role: "user",
       content: `Create exactly ${count} flashcards from the following text:\n\n${input}`,
     },
   ];
@@ -104,27 +104,27 @@ export function buildMessages(input: string, count: number = 5): Message[] {
  */
 export function getFlashcardResponseFormat(): FlashcardSchema {
   return {
-    type: 'json_schema',
+    type: "json_schema",
     json_schema: {
-      name: 'flashcard_generation',
+      name: "flashcard_generation",
       strict: true,
       schema: {
-        type: 'object',
+        type: "object",
         properties: {
           flashcards: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               properties: {
-                front: { type: 'string' },
-                back: { type: 'string' },
+                front: { type: "string" },
+                back: { type: "string" },
               },
-              required: ['front', 'back'],
+              required: ["front", "back"],
               additionalProperties: false,
             },
           },
         },
-        required: ['flashcards'],
+        required: ["flashcards"],
         additionalProperties: false,
       },
     },
@@ -139,11 +139,7 @@ export function getFlashcardResponseFormat(): FlashcardSchema {
  * @param maxDelay - Maximum delay in milliseconds (default: 10000)
  * @returns Delay in milliseconds
  */
-export function calculateBackoffDelay(
-  attempt: number,
-  baseDelay: number = 1000,
-  maxDelay: number = 10000
-): number {
+export function calculateBackoffDelay(attempt: number, baseDelay = 1000, maxDelay = 10000): number {
   const exponentialDelay = baseDelay * Math.pow(2, attempt);
   const jitter = Math.random() * 1000;
   return Math.min(exponentialDelay + jitter, maxDelay);
@@ -161,7 +157,7 @@ export function isRetryableError(error: unknown): boolean {
   }
 
   // Check if error has retryable property
-  if (typeof error === 'object' && 'retryable' in error) {
+  if (typeof error === "object" && "retryable" in error) {
     return Boolean(error.retryable);
   }
 
@@ -169,11 +165,11 @@ export function isRetryableError(error: unknown): boolean {
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
     return (
-      message.includes('network') ||
-      message.includes('timeout') ||
-      message.includes('econnrefused') ||
-      message.includes('enotfound') ||
-      message.includes('fetch')
+      message.includes("network") ||
+      message.includes("timeout") ||
+      message.includes("econnrefused") ||
+      message.includes("enotfound") ||
+      message.includes("fetch")
     );
   }
 
@@ -188,14 +184,14 @@ export function isRetryableError(error: unknown): boolean {
  */
 export function sanitizeInput(input: string): string {
   if (!input) {
-    return '';
+    return "";
   }
 
   // Remove null bytes
-  let sanitized = input.replace(/\0/g, '');
+  let sanitized = input.replace(/\0/g, "");
 
   // Normalize whitespace
-  sanitized = sanitized.replace(/\s+/g, ' ');
+  sanitized = sanitized.replace(/\s+/g, " ");
 
   // Trim
   sanitized = sanitized.trim();
@@ -210,13 +206,13 @@ export function sanitizeInput(input: string): string {
  * @returns True if the API key format is valid
  */
 export function isValidApiKeyFormat(apiKey: string): boolean {
-  if (!apiKey || typeof apiKey !== 'string') {
+  if (!apiKey || typeof apiKey !== "string") {
     return false;
   }
 
   // OpenRouter API keys typically start with "sk-or-"
   // and have a minimum length
-  return apiKey.startsWith('sk-or-') && apiKey.length > 20;
+  return apiKey.startsWith("sk-or-") && apiKey.length > 20;
 }
 
 /**
@@ -227,22 +223,19 @@ export function isValidApiKeyFormat(apiKey: string): boolean {
  */
 export function redactSensitiveInfo(text: string): string {
   if (!text) {
-    return '';
+    return "";
   }
 
   let redacted = text;
 
   // Redact API keys
-  redacted = redacted.replace(/sk-or-[a-zA-Z0-9-_]+/g, 'sk-or-***REDACTED***');
+  redacted = redacted.replace(/sk-or-[a-zA-Z0-9-_]+/g, "sk-or-***REDACTED***");
 
   // Redact bearer tokens
-  redacted = redacted.replace(/Bearer\s+[a-zA-Z0-9-_]+/gi, 'Bearer ***REDACTED***');
+  redacted = redacted.replace(/Bearer\s+[a-zA-Z0-9-_]+/gi, "Bearer ***REDACTED***");
 
   // Redact authorization headers
-  redacted = redacted.replace(
-    /"authorization":\s*"[^"]+"/gi,
-    '"authorization": "***REDACTED***"'
-  );
+  redacted = redacted.replace(/"authorization":\s*"[^"]+"/gi, '"authorization": "***REDACTED***"');
 
   return redacted;
 }
@@ -268,7 +261,7 @@ export function formatUsageStats(tokens: {
  * @param maxAge - Maximum age in milliseconds (default: 1 hour)
  * @returns True if cache entry is valid
  */
-export function isCacheValid(timestamp: number, maxAge: number = 3600000): boolean {
+export function isCacheValid(timestamp: number, maxAge = 3600000): boolean {
   return Date.now() - timestamp < maxAge;
 }
 

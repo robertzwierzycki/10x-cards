@@ -3,27 +3,16 @@
  * Dropdown for selecting target deck with option to create new deck
  */
 
-import { useCallback } from 'react';
-import { Check, ChevronsUpDown, Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import type { DeckSelectorProps } from '@/types/generator.types';
-import { useState } from 'react';
+import { useCallback } from "react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { DeckSelectorProps } from "@/types/generator.types";
+import { useState } from "react";
 
 export function DeckSelector({
   decks,
@@ -69,13 +58,8 @@ export function DeckSelector({
       {!isCreatingNew ? (
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between"
-            >
-              {selectedDeck ? selectedDeck.name : 'Wybierz talię...'}
+            <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+              {selectedDeck ? selectedDeck.name : "Wybierz talię..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -86,21 +70,12 @@ export function DeckSelector({
                 <CommandEmpty>Nie znaleziono talii.</CommandEmpty>
                 <CommandGroup>
                   {decks.map((deck) => (
-                    <CommandItem
-                      key={deck.id}
-                      value={deck.name}
-                      onSelect={() => handleSelectDeck(deck.id)}
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          selectedDeckId === deck.id ? 'opacity-100' : 'opacity-0'
-                        )}
-                      />
+                    <CommandItem key={deck.id} value={deck.name} onSelect={() => handleSelectDeck(deck.id)}>
+                      <Check className={cn("mr-2 h-4 w-4", selectedDeckId === deck.id ? "opacity-100" : "opacity-0")} />
                       <div className="flex flex-col">
                         <span>{deck.name}</span>
                         <span className="text-xs text-muted-foreground">
-                          {deck.flashcard_count} {deck.flashcard_count === 1 ? 'fiszka' : 'fiszek'}
+                          {deck.flashcard_count} {deck.flashcard_count === 1 ? "fiszka" : "fiszek"}
                         </span>
                       </div>
                     </CommandItem>
@@ -127,15 +102,8 @@ export function DeckSelector({
             autoFocus
           />
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {newDeckName.length}/255 znaków
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleCreateNew}
-              type="button"
-            >
+            <span className="text-xs text-muted-foreground">{newDeckName.length}/255 znaków</span>
+            <Button variant="ghost" size="sm" onClick={onToggleCreateNew} type="button">
               Anuluj
             </Button>
           </div>

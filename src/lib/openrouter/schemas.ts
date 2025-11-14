@@ -5,7 +5,7 @@
  * to ensure data integrity and type safety throughout the service.
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Schema for individual flashcard validation
@@ -13,12 +13,12 @@ import { z } from 'zod';
 export const flashcardItemSchema = z.object({
   front: z
     .string()
-    .min(1, 'Flashcard front text cannot be empty')
-    .max(500, 'Flashcard front text cannot exceed 500 characters'),
+    .min(1, "Flashcard front text cannot be empty")
+    .max(500, "Flashcard front text cannot exceed 500 characters"),
   back: z
     .string()
-    .min(1, 'Flashcard back text cannot be empty')
-    .max(500, 'Flashcard back text cannot exceed 500 characters'),
+    .min(1, "Flashcard back text cannot be empty")
+    .max(500, "Flashcard back text cannot exceed 500 characters"),
 });
 
 /**
@@ -27,8 +27,8 @@ export const flashcardItemSchema = z.object({
 export const flashcardArraySchema = z.object({
   flashcards: z
     .array(flashcardItemSchema)
-    .min(1, 'At least one flashcard must be generated')
-    .max(10, 'Cannot generate more than 10 flashcards at once'),
+    .min(1, "At least one flashcard must be generated")
+    .max(10, "Cannot generate more than 10 flashcards at once"),
 });
 
 /**
@@ -37,13 +37,13 @@ export const flashcardArraySchema = z.object({
 export const generateRequestSchema = z.object({
   input: z
     .string()
-    .min(1, 'Input text cannot be empty')
-    .max(1000, 'Input text cannot exceed 1000 characters')
+    .min(1, "Input text cannot be empty")
+    .max(1000, "Input text cannot exceed 1000 characters")
     .transform((val) => val.trim()),
   count: z
     .number()
-    .min(1, 'Must generate at least 1 flashcard')
-    .max(10, 'Cannot generate more than 10 flashcards')
+    .min(1, "Must generate at least 1 flashcard")
+    .max(10, "Cannot generate more than 10 flashcards")
     .optional()
     .default(5),
 });
@@ -52,32 +52,17 @@ export const generateRequestSchema = z.object({
  * Schema for validating generation options
  */
 export const generateOptionsSchema = z.object({
-  count: z
-    .number()
-    .min(1)
-    .max(10)
-    .optional()
-    .default(5),
-  temperature: z
-    .number()
-    .min(0)
-    .max(2)
-    .optional()
-    .default(0.7),
-  maxTokens: z
-    .number()
-    .min(1)
-    .max(4096)
-    .optional()
-    .default(500),
+  count: z.number().min(1).max(10).optional().default(5),
+  temperature: z.number().min(0).max(2).optional().default(0.7),
+  maxTokens: z.number().min(1).max(4096).optional().default(500),
 });
 
 /**
  * Schema for message validation
  */
 export const messageSchema = z.object({
-  role: z.enum(['system', 'user', 'assistant']),
-  content: z.string().min(1, 'Message content cannot be empty'),
+  role: z.enum(["system", "user", "assistant"]),
+  content: z.string().min(1, "Message content cannot be empty"),
 });
 
 /**
@@ -96,7 +81,7 @@ export const completionOptionsSchema = z.object({
  * Schema for OpenRouter service configuration
  */
 export const openRouterOptionsSchema = z.object({
-  apiKey: z.string().min(1, 'API key is required'),
+  apiKey: z.string().min(1, "API key is required"),
   baseUrl: z.string().url().optional(),
   defaultModel: z.string().optional(),
   maxRetries: z.number().min(0).max(10).optional(),

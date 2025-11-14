@@ -1,5 +1,5 @@
-import type { APIRoute } from 'astro';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
+import type { APIRoute } from "astro";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const prerender = false;
 
@@ -32,10 +32,13 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     });
 
     // Get current user session
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
     if (error) {
-      console.error('Session check error:', error);
+      console.error("Session check error:", error);
       // Return unauthenticated on error
       return new Response(
         JSON.stringify({
@@ -45,7 +48,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
         {
           status: 200,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -65,7 +68,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
         {
           status: 200,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -80,12 +83,12 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
   } catch (error) {
-    console.error('Unexpected error in session endpoint:', error);
+    console.error("Unexpected error in session endpoint:", error);
 
     // Return unauthenticated on any error
     return new Response(
@@ -96,7 +99,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );

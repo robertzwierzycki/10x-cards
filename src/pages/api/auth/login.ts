@@ -1,7 +1,7 @@
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
-import { loginSchema } from '@/schemas/auth.schema';
+import type { APIRoute } from "astro";
+import { z } from "zod";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { loginSchema } from "@/schemas/auth.schema";
 
 export const prerender = false;
 
@@ -40,13 +40,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (!validationResult.success) {
       return new Response(
         JSON.stringify({
-          error: 'Nieprawidłowe dane',
+          error: "Nieprawidłowe dane",
           details: validationResult.error.errors,
         }),
         {
           status: 400,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -68,60 +68,60 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (error) {
       // Handle specific Supabase auth errors
-      if (error.message.includes('Invalid login credentials')) {
+      if (error.message.includes("Invalid login credentials")) {
         return new Response(
           JSON.stringify({
-            error: 'Nieprawidłowy e-mail lub hasło',
+            error: "Nieprawidłowy e-mail lub hasło",
           }),
           {
             status: 401,
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
           }
         );
       }
 
       // Rate limiting error
-      if (error.message.includes('rate limit') || error.status === 429) {
+      if (error.message.includes("rate limit") || error.status === 429) {
         return new Response(
           JSON.stringify({
-            error: 'Zbyt wiele prób logowania. Spróbuj ponownie za chwilę',
+            error: "Zbyt wiele prób logowania. Spróbuj ponownie za chwilę",
           }),
           {
             status: 429,
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
           }
         );
       }
 
       // Email not confirmed
-      if (error.message.includes('Email not confirmed')) {
+      if (error.message.includes("Email not confirmed")) {
         return new Response(
           JSON.stringify({
-            error: 'Potwierdź swój adres email przed zalogowaniem. Sprawdź swoją skrzynkę',
+            error: "Potwierdź swój adres email przed zalogowaniem. Sprawdź swoją skrzynkę",
           }),
           {
             status: 403,
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
           }
         );
       }
 
       // Generic auth error
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       return new Response(
         JSON.stringify({
-          error: 'Wystąpił błąd podczas logowania. Spróbuj ponownie',
+          error: "Wystąpił błąd podczas logowania. Spróbuj ponownie",
         }),
         {
           status: 500,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -138,23 +138,23 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
   } catch (error) {
-    console.error('Unexpected error in login endpoint:', error);
+    console.error("Unexpected error in login endpoint:", error);
 
     // Handle JSON parse errors
     if (error instanceof SyntaxError) {
       return new Response(
         JSON.stringify({
-          error: 'Nieprawidłowy format danych',
+          error: "Nieprawidłowy format danych",
         }),
         {
           status: 400,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -163,12 +163,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Generic server error
     return new Response(
       JSON.stringify({
-        error: 'Błąd serwera. Spróbuj ponownie później',
+        error: "Błąd serwera. Spróbuj ponownie później",
       }),
       {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );

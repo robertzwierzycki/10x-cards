@@ -33,10 +33,10 @@ export default function LoginForm({ redirectTo = "/" }: LoginFormProps) {
       setServerError(null);
 
       // Call login API endpoint
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: data.email,
@@ -64,7 +64,6 @@ export default function LoginForm({ redirectTo = "/" }: LoginFormProps) {
       // Decode URL in case it was encoded by middleware
       const decodedRedirect = decodeURIComponent(redirectTo);
       window.location.href = decodedRedirect;
-
     } catch (error) {
       console.error("Login error:", error);
 

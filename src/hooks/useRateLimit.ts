@@ -3,8 +3,8 @@
  * Tracks rate limiting state with localStorage persistence
  */
 
-import { useEffect, useState } from 'react';
-import { getRateLimitInfo, saveRateLimitInfo, clearRateLimitInfo } from '@/services/generator.service';
+import { useEffect, useState } from "react";
+import { getRateLimitInfo, saveRateLimitInfo, clearRateLimitInfo } from "@/services/generator.service";
 
 export function useRateLimit() {
   const [remaining, setRemaining] = useState<number>(10);

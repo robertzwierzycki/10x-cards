@@ -95,9 +95,7 @@ export default function EmailConfirmation() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Weryfikacja emaila</CardTitle>
-          <CardDescription className="text-center">
-            Trwa potwierdzanie Twojego adresu e-mail...
-          </CardDescription>
+          <CardDescription className="text-center">Trwa potwierdzanie Twojego adresu e-mail...</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
@@ -119,8 +117,7 @@ export default function EmailConfirmation() {
           </div>
           <CardTitle className="text-2xl font-bold text-center">Email potwierdzony!</CardTitle>
           <CardDescription className="text-center">
-            Twój adres e-mail został pomyślnie zweryfikowany. Możesz teraz w pełni korzystać z
-            10xCards.
+            Twój adres e-mail został pomyślnie zweryfikowany. Możesz teraz w pełni korzystać z 10xCards.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -158,9 +155,7 @@ export default function EmailConfirmation() {
           <AlertCircle className="h-16 w-16 text-destructive" aria-hidden="true" />
         </div>
         <CardTitle className="text-2xl font-bold text-center">Błąd weryfikacji</CardTitle>
-        <CardDescription className="text-center">
-          Nie udało się potwierdzić Twojego adresu e-mail.
-        </CardDescription>
+        <CardDescription className="text-center">Nie udało się potwierdzić Twojego adresu e-mail.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Alert variant="destructive">

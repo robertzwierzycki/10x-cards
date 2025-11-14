@@ -92,15 +92,13 @@ export default function ResetPasswordForm() {
           </div>
           <CardTitle className="text-2xl font-bold text-center">Sprawdź swoją skrzynkę</CardTitle>
           <CardDescription className="text-center">
-            Jeśli podany adres e-mail jest zarejestrowany w systemie, wysłaliśmy na niego link do
-            resetowania hasła.
+            Jeśli podany adres e-mail jest zarejestrowany w systemie, wysłaliśmy na niego link do resetowania hasła.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
             <AlertDescription>
-              Link do resetowania hasła jest ważny przez 60 minut. Jeśli nie widzisz wiadomości,
-              sprawdź folder spam.
+              Link do resetowania hasła jest ważny przez 60 minut. Jeśli nie widzisz wiadomości, sprawdź folder spam.
             </AlertDescription>
           </Alert>
 

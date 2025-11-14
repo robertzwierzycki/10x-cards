@@ -103,8 +103,7 @@ export default function NewPasswordForm() {
           </div>
           <CardTitle className="text-2xl font-bold text-center">Hasło zostało zmienione</CardTitle>
           <CardDescription className="text-center">
-            Twoje hasło zostało pomyślnie zaktualizowane. Za chwilę zostaniesz przekierowany do
-            strony logowania.
+            Twoje hasło zostało pomyślnie zaktualizowane. Za chwilę zostaniesz przekierowany do strony logowania.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -135,8 +134,7 @@ export default function NewPasswordForm() {
           </div>
           <CardTitle className="text-2xl font-bold text-center">Link wygasł</CardTitle>
           <CardDescription className="text-center">
-            Link do resetowania hasła wygasł lub jest nieprawidłowy. Linki są ważne przez 60
-            minut.
+            Link do resetowania hasła wygasł lub jest nieprawidłowy. Linki są ważne przez 60 minut.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -166,9 +164,7 @@ export default function NewPasswordForm() {
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Ustaw nowe hasło</CardTitle>
-        <CardDescription>
-          Wprowadź nowe hasło dla swojego konta. Hasło musi mieć co najmniej 8 znaków.
-        </CardDescription>
+        <CardDescription>Wprowadź nowe hasło dla swojego konta. Hasło musi mieć co najmniej 8 znaków.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

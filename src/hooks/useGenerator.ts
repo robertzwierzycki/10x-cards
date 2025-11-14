@@ -3,17 +3,12 @@
  * Main hook for AI Generator logic, combining store with business logic
  */
 
-import { useCallback } from 'react';
-import { useGeneratorStore } from '@/stores/generator.store';
-import { useRateLimit } from './useRateLimit';
-import {
-  generateFlashcards,
-  createDeck,
-  saveFlashcards,
-  APIError,
-} from '@/services/generator.service';
-import { textInputSchema } from '@/schemas/generator.schema';
-import type { EditableSuggestion } from '@/types/generator.types';
+import { useCallback } from "react";
+import { useGeneratorStore } from "@/stores/generator.store";
+import { useRateLimit } from "./useRateLimit";
+import { generateFlashcards, createDeck, saveFlashcards, APIError } from "@/services/generator.service";
+import { textInputSchema } from "@/schemas/generator.schema";
+import type { EditableSuggestion } from "@/types/generator.types";
 
 export function useGenerator() {
   const store = useGeneratorStore();
@@ -26,19 +21,19 @@ export function useGenerator() {
     // Validate text
     const validation = textInputSchema.safeParse(store.text);
     if (!validation.success) {
-      store.setError(validation.error.errors[0]?.message || 'Błąd walidacji');
+      store.setError(validation.error.errors[0]?.message || "Błąd walidacji");
       return;
     }
 
     // Check rate limit
     if (rateLimit.isLimited) {
-      store.setError('Przekroczono limit żądań. Spróbuj ponownie za chwilę.');
+      store.setError("Przekroczono limit żądań. Spróbuj ponownie za chwilę.");
       return;
     }
 
     try {
       // Set loading state
-      store.setViewState('loading');
+      store.setViewState("loading");
       store.setLoadingStartTime(Date.now());
       store.setError(null);
 
@@ -46,19 +41,17 @@ export function useGenerator() {
       const response = await generateFlashcards(store.text);
 
       // Convert suggestions to EditableSuggestion format
-      const suggestions: EditableSuggestion[] = response.suggestions.map(
-        (s, index) => ({
-          id: `suggestion-${Date.now()}-${index}`,
-          front: s.front,
-          back: s.back,
-          isDeleted: false,
-        })
-      );
+      const suggestions: EditableSuggestion[] = response.suggestions.map((s, index) => ({
+        id: `suggestion-${Date.now()}-${index}`,
+        front: s.front,
+        back: s.back,
+        isDeleted: false,
+      }));
 
       // Update store
       store.setSuggestions(suggestions);
       store.setTruncated(response.truncated);
-      store.setViewState('review');
+      store.setViewState("review");
       store.setLoadingStartTime(null);
 
       // Update rate limit (assume 1 request consumed)
@@ -74,22 +67,18 @@ export function useGenerator() {
           // Rate limit exceeded
           const retryAfter = error.data.retry_after || 60;
           rateLimit.updateRateLimit(0, retryAfter);
-          store.setError(
-            `Przekroczono limit żądań. Spróbuj ponownie za ${retryAfter} sekund.`
-          );
+          store.setError(`Przekroczono limit żądań. Spróbuj ponownie za ${retryAfter} sekund.`);
         } else if (error.status === 503) {
           // Service unavailable
-          store.setError(
-            'Usługa AI jest tymczasowo niedostępna. Spróbuj ponownie za chwilę.'
-          );
+          store.setError("Usługa AI jest tymczasowo niedostępna. Spróbuj ponownie za chwilę.");
         } else {
           store.setError(error.message);
         }
       } else {
-        store.setError('Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');
+        store.setError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
       }
 
-      store.setViewState('input');
+      store.setViewState("input");
     }
   }, [store, rateLimit]);
 
@@ -99,7 +88,7 @@ export function useGenerator() {
   const handleSave = useCallback(
     async (deckId: string, newDeckName?: string) => {
       try {
-        store.setViewState('saving');
+        store.setViewState("saving");
         store.setError(null);
 
         let targetDeckId = deckId;
@@ -120,15 +109,15 @@ export function useGenerator() {
         if (error instanceof APIError) {
           if (error.status === 409) {
             // Deck name conflict
-            store.setError('Talia o tej nazwie już istnieje. Wybierz inną nazwę.');
+            store.setError("Talia o tej nazwie już istnieje. Wybierz inną nazwę.");
           } else {
             store.setError(error.message);
           }
         } else {
-          store.setError('Nie udało się zapisać fiszek. Spróbuj ponownie.');
+          store.setError("Nie udało się zapisać fiszek. Spróbuj ponownie.");
         }
 
-        store.setViewState('review');
+        store.setViewState("review");
         throw error;
       }
     },
@@ -139,7 +128,7 @@ export function useGenerator() {
    * Handle cancel action
    */
   const handleCancel = useCallback(() => {
-    store.setViewState('input');
+    store.setViewState("input");
     store.setSuggestions([]);
     store.setTruncated(false);
     store.setError(null);

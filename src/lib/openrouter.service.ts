@@ -11,7 +11,7 @@
  */
 
 // Re-export everything from the main service
-export * from './openrouter';
+export * from "./openrouter";
 
 // Default export for convenience
-export { OpenRouterService as default } from './openrouter';
+export { OpenRouterService as default } from "./openrouter";

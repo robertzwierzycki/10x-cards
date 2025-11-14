@@ -12,8 +12,8 @@ import type {
   BulkCreateFlashcardsCommand,
   BulkCreateFlashcardsResponseDTO,
   ErrorResponseDTO,
-} from '@/types';
-import type { EditableSuggestion } from '@/types/generator.types';
+} from "@/types";
+import type { EditableSuggestion } from "@/types/generator.types";
 
 /**
  * Custom error class for API errors
@@ -24,20 +24,18 @@ export class APIError extends Error {
     public data: ErrorResponseDTO
   ) {
     super(data.error);
-    this.name = 'APIError';
+    this.name = "APIError";
   }
 }
 
 /**
  * Generate flashcards from text using AI
  */
-export async function generateFlashcards(
-  text: string
-): Promise<GenerateFlashcardsResponseDTO> {
-  const response = await fetch('/api/ai/generate', {
-    method: 'POST',
+export async function generateFlashcards(text: string): Promise<GenerateFlashcardsResponseDTO> {
+  const response = await fetch("/api/ai/generate", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ text } as GenerateFlashcardsCommand),
   });
@@ -54,9 +52,9 @@ export async function generateFlashcards(
  * Fetch user's decks
  */
 export async function fetchDecks(): Promise<DeckListDTO> {
-  const response = await fetch('/api/decks?limit=100', {
+  const response = await fetch("/api/decks?limit=100", {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
@@ -72,10 +70,10 @@ export async function fetchDecks(): Promise<DeckListDTO> {
  * Create a new deck
  */
 export async function createDeck(name: string): Promise<DeckDTO> {
-  const response = await fetch('/api/decks', {
-    method: 'POST',
+  const response = await fetch("/api/decks", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ name } as CreateDeckCommand),
   });
@@ -103,10 +101,10 @@ export async function saveFlashcards(
       is_ai_generated: true,
     }));
 
-  const response = await fetch('/api/flashcards/bulk', {
-    method: 'POST',
+  const response = await fetch("/api/flashcards/bulk", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       deck_id: deckId,
@@ -130,13 +128,13 @@ export interface RateLimitInfo {
   resetTime: number;
 }
 
-const RATE_LIMIT_KEY = 'ai_generator_rate_limit';
+const RATE_LIMIT_KEY = "ai_generator_rate_limit";
 
 /**
  * Get rate limit info from localStorage
  */
 export function getRateLimitInfo(): RateLimitInfo | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
 
   try {
     const stored = localStorage.getItem(RATE_LIMIT_KEY);
@@ -160,7 +158,7 @@ export function getRateLimitInfo(): RateLimitInfo | null {
  * Save rate limit info to localStorage
  */
 export function saveRateLimitInfo(remaining: number, retryAfter: number): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   const resetTime = Date.now() + retryAfter * 1000;
   const data: RateLimitInfo = {
@@ -179,7 +177,7 @@ export function saveRateLimitInfo(remaining: number, retryAfter: number): void {
  * Clear rate limit info from localStorage
  */
 export function clearRateLimitInfo(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   try {
     localStorage.removeItem(RATE_LIMIT_KEY);

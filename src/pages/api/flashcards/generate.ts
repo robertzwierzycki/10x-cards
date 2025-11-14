@@ -7,15 +7,10 @@
  * Requires authentication via Supabase session.
  */
 
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import { OpenRouterService } from '@/lib/openrouter';
-import {
-  OpenRouterError,
-  AuthenticationError,
-  RateLimitError,
-  ValidationError,
-} from '@/lib/openrouter/errors';
+import type { APIRoute } from "astro";
+import { z } from "zod";
+import { OpenRouterService } from "@/lib/openrouter";
+import { OpenRouterError, AuthenticationError, RateLimitError, ValidationError } from "@/lib/openrouter/errors";
 
 export const prerender = false;
 
@@ -25,17 +20,17 @@ export const prerender = false;
 const generateRequestSchema = z.object({
   input: z
     .string()
-    .min(1, 'Input text is required')
-    .max(1000, 'Input text cannot exceed 1000 characters')
+    .min(1, "Input text is required")
+    .max(1000, "Input text cannot exceed 1000 characters")
     .transform((val) => val.trim()),
   count: z
     .number()
     .int()
-    .min(1, 'Must generate at least 1 flashcard')
-    .max(10, 'Cannot generate more than 10 flashcards')
+    .min(1, "Must generate at least 1 flashcard")
+    .max(10, "Cannot generate more than 10 flashcards")
     .optional()
     .default(5),
-  deckId: z.string().uuid('Invalid deck ID').optional(),
+  deckId: z.string().uuid("Invalid deck ID").optional(),
 });
 
 type GenerateRequest = z.infer<typeof generateRequestSchema>;
@@ -55,12 +50,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (sessionError || !session) {
     return new Response(
       JSON.stringify({
-        error: 'Unauthorized',
-        message: 'You must be logged in to generate flashcards',
+        error: "Unauthorized",
+        message: "You must be logged in to generate flashcards",
       }),
       {
         status: 401,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -75,15 +70,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Initialize OpenRouter service
     const apiKey = import.meta.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      console.error('OPENROUTER_API_KEY is not configured');
+      console.error("OPENROUTER_API_KEY is not configured");
       return new Response(
         JSON.stringify({
-          error: 'Configuration Error',
-          message: 'AI service is not properly configured',
+          error: "Configuration Error",
+          message: "AI service is not properly configured",
         }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -96,15 +91,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (!openRouterService.checkRateLimit(userId)) {
       return new Response(
         JSON.stringify({
-          error: 'Rate Limit Exceeded',
-          message: 'Too many requests. Please try again in a moment.',
+          error: "Rate Limit Exceeded",
+          message: "Too many requests. Please try again in a moment.",
           retryAfter: 60,
         }),
         {
           status: 429,
           headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': '60',
+            "Content-Type": "application/json",
+            "Retry-After": "60",
           },
         }
       );
@@ -113,21 +108,21 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Verify deck ownership if deckId provided
     if (validated.deckId) {
       const { data: deck, error: deckError } = await supabase
-        .from('decks')
-        .select('id, user_id')
-        .eq('id', validated.deckId)
-        .eq('user_id', userId)
+        .from("decks")
+        .select("id, user_id")
+        .eq("id", validated.deckId)
+        .eq("user_id", userId)
         .single();
 
       if (deckError || !deck) {
         return new Response(
           JSON.stringify({
-            error: 'Not Found',
-            message: 'Deck not found or access denied',
+            error: "Not Found",
+            message: "Deck not found or access denied",
           }),
           {
             status: 404,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { "Content-Type": "application/json" },
           }
         );
       }
@@ -157,7 +152,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // }
 
     // Log to console for now
-    console.log('AI Usage:', {
+    console.log("AI Usage:", {
       userId,
       deckId: validated.deckId,
       inputLength: validated.input.length,
@@ -181,7 +176,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   } catch (error) {
@@ -189,31 +184,31 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (error instanceof z.ZodError) {
       return new Response(
         JSON.stringify({
-          error: 'Validation Failed',
-          message: 'Invalid request data',
+          error: "Validation Failed",
+          message: "Invalid request data",
           details: error.errors.map((e) => ({
-            field: e.path.join('.'),
+            field: e.path.join("."),
             message: e.message,
           })),
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // Handle OpenRouter-specific errors
     if (error instanceof AuthenticationError) {
-      console.error('OpenRouter authentication error:', error.message);
+      console.error("OpenRouter authentication error:", error.message);
       return new Response(
         JSON.stringify({
-          error: 'Service Configuration Error',
-          message: 'AI service authentication failed. Please contact support.',
+          error: "Service Configuration Error",
+          message: "AI service authentication failed. Please contact support.",
         }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -221,15 +216,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (error instanceof RateLimitError) {
       return new Response(
         JSON.stringify({
-          error: 'Rate Limit Exceeded',
+          error: "Rate Limit Exceeded",
           message: error.getUserMessage(),
           retryAfter: error.retryAfter ? Math.ceil(error.retryAfter / 1000) : 60,
         }),
         {
           status: 429,
           headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': String(error.retryAfter ? Math.ceil(error.retryAfter / 1000) : 60),
+            "Content-Type": "application/json",
+            "Retry-After": String(error.retryAfter ? Math.ceil(error.retryAfter / 1000) : 60),
           },
         }
       );
@@ -238,18 +233,18 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (error instanceof ValidationError) {
       return new Response(
         JSON.stringify({
-          error: 'Validation Error',
+          error: "Validation Error",
           message: error.getUserMessage(),
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     if (error instanceof OpenRouterError) {
-      console.error('OpenRouter error:', {
+      console.error("OpenRouter error:", {
         code: error.code,
         message: error.message,
         statusCode: error.statusCode,
@@ -257,26 +252,26 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
       return new Response(
         JSON.stringify({
-          error: 'AI Service Error',
+          error: "AI Service Error",
           message: error.getUserMessage(),
         }),
         {
           status: error.statusCode || 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // Handle unexpected errors
-    console.error('Unexpected error in flashcard generation:', error);
+    console.error("Unexpected error in flashcard generation:", error);
     return new Response(
       JSON.stringify({
-        error: 'Internal Server Error',
-        message: 'An unexpected error occurred. Please try again later.',
+        error: "Internal Server Error",
+        message: "An unexpected error occurred. Please try again later.",
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }

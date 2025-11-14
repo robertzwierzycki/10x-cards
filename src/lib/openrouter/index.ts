@@ -17,7 +17,7 @@ import type {
   ApiResponse,
   CachedResponse,
   RateLimitInfo,
-} from './types';
+} from "./types";
 
 import {
   OpenRouterError,
@@ -28,7 +28,7 @@ import {
   NetworkError,
   ParseError,
   createErrorFromResponse,
-} from './errors';
+} from "./errors";
 
 import {
   truncateInput,
@@ -44,14 +44,9 @@ import {
   isCacheValid,
   safeJsonParse,
   delay,
-} from './utils';
+} from "./utils";
 
-import {
-  generateOptionsSchema,
-  completionOptionsSchema,
-  flashcardArraySchema,
-  apiResponseSchema,
-} from './schemas';
+import { generateOptionsSchema, completionOptionsSchema, flashcardArraySchema, apiResponseSchema } from "./schemas";
 
 /**
  * OpenRouter Service Class
@@ -87,17 +82,17 @@ export class OpenRouterService {
   constructor(options: OpenRouterOptions) {
     // Validate API key
     if (!options.apiKey) {
-      throw new AuthenticationError('OpenRouter API key is required');
+      throw new AuthenticationError("OpenRouter API key is required");
     }
 
     if (!isValidApiKeyFormat(options.apiKey)) {
-      throw new AuthenticationError('Invalid OpenRouter API key format');
+      throw new AuthenticationError("Invalid OpenRouter API key format");
     }
 
     // Initialize configuration with defaults
     this.apiKey = options.apiKey;
-    this.baseUrl = options.baseUrl || 'https://openrouter.ai/api/v1';
-    this.model = options.defaultModel || 'openai/gpt-4o-mini';
+    this.baseUrl = options.baseUrl || "https://openrouter.ai/api/v1";
+    this.model = options.defaultModel || "openai/gpt-4o-mini";
     this.maxRetries = options.maxRetries ?? 3;
     this.retryDelay = options.retryDelay ?? 1000;
     this.timeout = options.timeout ?? 30000;
@@ -126,35 +121,25 @@ export class OpenRouterService {
    * @throws {ValidationError} If input is invalid
    * @throws {OpenRouterError} If API request fails
    */
-  async generateFlashcards(
-    input: string,
-    options?: GenerateOptions
-  ): Promise<FlashcardResponse> {
+  async generateFlashcards(input: string, options?: GenerateOptions): Promise<FlashcardResponse> {
     // Validate and sanitize input
-    if (!input || typeof input !== 'string') {
-      throw new ValidationError('Input text is required');
+    if (!input || typeof input !== "string") {
+      throw new ValidationError("Input text is required");
     }
 
     const sanitizedInput = sanitizeInput(input);
     if (!sanitizedInput) {
-      throw new ValidationError('Input text cannot be empty after sanitization');
+      throw new ValidationError("Input text cannot be empty after sanitization");
     }
 
     // Validate options
-    const validatedOptions = options
-      ? generateOptionsSchema.parse(options)
-      : generateOptionsSchema.parse({});
+    const validatedOptions = options ? generateOptionsSchema.parse(options) : generateOptionsSchema.parse({});
 
     // Truncate input to max length
-    const { text: truncatedInput, truncated } = truncateInput(
-      sanitizedInput,
-      this.maxInputLength
-    );
+    const { text: truncatedInput, truncated } = truncateInput(sanitizedInput, this.maxInputLength);
 
     // Check cache
-    const cacheKey = await generateCacheKey(
-      `${truncatedInput}-${validatedOptions.count}`
-    );
+    const cacheKey = await generateCacheKey(`${truncatedInput}-${validatedOptions.count}`);
     const cachedResponse = this._getCached(cacheKey);
     if (cachedResponse) {
       return cachedResponse;
@@ -198,19 +183,14 @@ export class OpenRouterService {
    * @throws {ValidationError} If messages are invalid
    * @throws {OpenRouterError} If API request fails
    */
-  async generateCompletion(
-    messages: Message[],
-    options?: CompletionOptions
-  ): Promise<CompletionResponse> {
+  async generateCompletion(messages: Message[], options?: CompletionOptions): Promise<CompletionResponse> {
     // Validate messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      throw new ValidationError('Messages array is required and cannot be empty');
+      throw new ValidationError("Messages array is required and cannot be empty");
     }
 
     // Validate options
-    const validatedOptions = options
-      ? completionOptionsSchema.parse(options)
-      : completionOptionsSchema.parse({});
+    const validatedOptions = options ? completionOptionsSchema.parse(options) : completionOptionsSchema.parse({});
 
     // Build request body
     const requestBody = this._buildRequestBody(messages, validatedOptions);
@@ -227,7 +207,7 @@ export class OpenRouterService {
       model: apiResponse.model,
       choices: apiResponse.choices.map((choice) => ({
         message: {
-          role: choice.message.role as 'system' | 'user' | 'assistant',
+          role: choice.message.role as "system" | "user" | "assistant",
           content: choice.message.content,
         },
         finish_reason: choice.finish_reason,
@@ -246,9 +226,7 @@ export class OpenRouterService {
    */
   async testConnection(): Promise<boolean> {
     try {
-      const testMessages: Message[] = [
-        { role: 'user', content: 'Hello' },
-      ];
+      const testMessages: Message[] = [{ role: "user", content: "Hello" }];
 
       await this._makeRequest(
         this._buildRequestBody(testMessages, {
@@ -262,7 +240,7 @@ export class OpenRouterService {
       if (error instanceof OpenRouterError) {
         throw error;
       }
-      throw new NetworkError('Failed to connect to OpenRouter API');
+      throw new NetworkError("Failed to connect to OpenRouter API");
     }
   }
 
@@ -365,12 +343,12 @@ export class OpenRouterService {
 
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${this.apiKey}`,
-          'HTTP-Referer': 'https://10xcards.app',
-          'X-Title': '10xCards',
+          "HTTP-Referer": "https://10xcards.app",
+          "X-Title": "10xCards",
         },
         body: JSON.stringify(body),
         signal: controller.signal,
@@ -381,11 +359,7 @@ export class OpenRouterService {
       // Handle non-OK responses
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
-        throw createErrorFromResponse(
-          response.status,
-          errorBody,
-          `API request failed with status ${response.status}`
-        );
+        throw createErrorFromResponse(response.status, errorBody, `API request failed with status ${response.status}`);
       }
 
       // Parse response
@@ -399,13 +373,13 @@ export class OpenRouterService {
       clearTimeout(timeoutId);
 
       // Handle abort/timeout
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         throw new TimeoutError(`Request timed out after ${this.timeout}ms`, this.timeout);
       }
 
       // Handle network errors
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new NetworkError('Network request failed', error);
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        throw new NetworkError("Network request failed", error);
       }
 
       // Re-throw OpenRouter errors
@@ -414,10 +388,7 @@ export class OpenRouterService {
       }
 
       // Wrap unknown errors
-      throw new OpenRouterError(
-        error instanceof Error ? error.message : 'Unknown error occurred',
-        'UNKNOWN_ERROR'
-      );
+      throw new OpenRouterError(error instanceof Error ? error.message : "Unknown error occurred", "UNKNOWN_ERROR");
     }
   }
 
@@ -429,20 +400,17 @@ export class OpenRouterService {
    * @returns Flashcard response object
    * @throws {ParseError} If response parsing fails
    */
-  private _parseFlashcardResponse(
-    response: ApiResponse,
-    truncated: boolean
-  ): FlashcardResponse {
+  private _parseFlashcardResponse(response: ApiResponse, truncated: boolean): FlashcardResponse {
     try {
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        throw new ParseError('Empty response content');
+        throw new ParseError("Empty response content");
       }
 
       // Parse JSON content
       const parsedContent = safeJsonParse(content);
       if (!parsedContent) {
-        throw new ParseError('Failed to parse response JSON', content);
+        throw new ParseError("Failed to parse response JSON", content);
       }
 
       // Validate structure
@@ -459,7 +427,7 @@ export class OpenRouterService {
         throw error;
       }
       throw new ParseError(
-        `Failed to parse flashcard response: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to parse flashcard response: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -482,11 +450,7 @@ export class OpenRouterService {
         this.usageStats.totalErrors++;
 
         // Don't retry non-retryable errors
-        if (
-          error instanceof OpenRouterError &&
-          !error.isRetryable() &&
-          !(error instanceof RateLimitError)
-        ) {
+        if (error instanceof OpenRouterError && !error.isRetryable() && !(error instanceof RateLimitError)) {
           throw error;
         }
 
@@ -508,7 +472,7 @@ export class OpenRouterService {
       }
     }
 
-    throw lastError || new OpenRouterError('Operation failed after retries', 'RETRY_FAILED');
+    throw lastError || new OpenRouterError("Operation failed after retries", "RETRY_FAILED");
   }
 
   /**
@@ -565,13 +529,12 @@ export class OpenRouterService {
 
     if (responseTime > 0) {
       const currentTotal = this.usageStats.averageResponseTime * (this.usageStats.totalRequests - 1);
-      this.usageStats.averageResponseTime =
-        (currentTotal + responseTime) / this.usageStats.totalRequests;
+      this.usageStats.averageResponseTime = (currentTotal + responseTime) / this.usageStats.totalRequests;
     }
   }
 }
 
 // Export types and errors for convenience
-export * from './types';
-export * from './errors';
-export * from './schemas';
+export * from "./types";
+export * from "./errors";
+export * from "./schemas";
