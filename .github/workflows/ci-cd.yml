@@ -1,0 +1,425 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22.14.0'
+
+jobs:
+  # Job 1: Lint and Format Check
+  lint:
+    name: 🧹 Lint & Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      - name: 🎨 Check Prettier formatting
+        run: npx prettier --check .
+
+  # Job 2: Type Check
+  typecheck:
+    name: 📝 Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run TypeScript compiler
+        run: npx tsc --noEmit
+
+  # Job 3: Unit and Integration Tests
+  test-unit:
+    name: 🧪 Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY_TEST }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_TEST }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY_TEST }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: 📈 Generate coverage comment
+        if: github.event_name == 'pull_request'
+        uses: romeovs/lcov-reporter-action@v0.4.0
+        with:
+          lcov-file: ./coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📁 Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # Job 4: E2E Tests
+  test-e2e:
+    name: 🎭 E2E Tests
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY_TEST }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_TEST }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY_TEST }}
+      BASE_URL: http://localhost:3000
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🎭 Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: 🎭 Run Playwright tests
+        run: npm run test:e2e
+
+      - name: 📁 Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: 📹 Upload test videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-videos
+          path: test-results/
+          retention-days: 3
+
+  # Job 5: Build
+  build:
+    name: 🏗️ Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test-unit]
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL_PROD }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY_PROD }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL_PROD }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_PROD }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY_PROD }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build project
+        run: npm run build
+
+      - name: 📁 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+          retention-days: 7
+
+  # Job 6: Security Scan
+  security:
+    name: 🔐 Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔍 Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: 🔐 Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # Job 7: Lighthouse Performance Audit
+  lighthouse:
+    name: 🚀 Performance Audit
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY_TEST }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_TEST }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY_TEST }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 📥 Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: 🚀 Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  # Job 8: Deploy to Staging
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, test-e2e]
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.10xcards.com
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: 🚀 Deploy to DigitalOcean (Staging)
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          STAGING_SERVER_IP: ${{ secrets.STAGING_SERVER_IP }}
+          STAGING_SERVER_USER: ${{ secrets.STAGING_SERVER_USER }}
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$STAGING_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $STAGING_SERVER_IP >> ~/.ssh/known_hosts
+
+          # Copy build artifacts
+          scp -r dist/* $STAGING_SERVER_USER@$STAGING_SERVER_IP:/var/www/staging/
+
+          # Restart Node.js application
+          ssh $STAGING_SERVER_USER@$STAGING_SERVER_IP "cd /var/www/staging && npm install --production && pm2 restart 10xcards-staging"
+
+  # Job 9: Deploy to Production
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, test-e2e, security]
+    if: github.ref == 'refs/heads/master'
+    environment:
+      name: production
+      url: https://10xcards.com
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: 🏷️ Create release tag
+        if: success()
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          VERSION=$(node -p "require('./package.json').version")
+          git tag -a "v$VERSION-$(date +%Y%m%d%H%M%S)" -m "Production deployment"
+          git push origin --tags
+
+      - name: 🚀 Deploy to DigitalOcean (Production)
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          PROD_SERVER_IP: ${{ secrets.PROD_SERVER_IP }}
+          PROD_SERVER_USER: ${{ secrets.PROD_SERVER_USER }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$PROD_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $PROD_SERVER_IP >> ~/.ssh/known_hosts
+
+          # Backup current production
+          ssh $PROD_SERVER_USER@$PROD_SERVER_IP "cd /var/www && tar -czf backup-$(date +%Y%m%d%H%M%S).tar.gz production/"
+
+          # Copy build artifacts
+          scp -r dist/* $PROD_SERVER_USER@$PROD_SERVER_IP:/var/www/production/
+
+          # Restart Node.js application with zero-downtime
+          ssh $PROD_SERVER_USER@$PROD_SERVER_IP "cd /var/www/production && npm install --production && pm2 reload 10xcards-production"
+
+      - name: 💬 Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Production deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+
+  # Job 10: Run Local Development (for debugging)
+  run-local:
+    name: 🏠 Test Local Run
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test-unit]
+    if: github.event_name == 'workflow_dispatch'
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY_TEST }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_TEST }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY_TEST }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: 🏃 Start application
+        run: |
+          npm run preview &
+          sleep 10
+          curl -f http://localhost:3000 || exit 1
+          echo "✅ Application is running successfully on http://localhost:3000"
+
+  # Job Status Summary
+  status:
+    name: 📊 Pipeline Status
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test-unit, test-e2e, build, security]
+    if: always()
+
+    steps:
+      - name: 📊 Check all job statuses
+        run: |
+          echo "Pipeline Summary:"
+          echo "=================="
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Type Check: ${{ needs.typecheck.result }}"
+          echo "Unit Tests: ${{ needs.test-unit.result }}"
+          echo "E2E Tests: ${{ needs.test-e2e.result }}"
+          echo "Build: ${{ needs.build.result }}"
+          echo "Security: ${{ needs.security.result }}"
+
+      - name: ✅ Pipeline Success
+        if: needs.lint.result == 'success' && needs.typecheck.result == 'success' && needs.test-unit.result == 'success' && needs.test-e2e.result == 'success' && needs.build.result == 'success'
+        run: echo "✅ All checks passed successfully!"
+
+      - name: ❌ Pipeline Failure
+        if: needs.lint.result == 'failure' || needs.typecheck.result == 'failure' || needs.test-unit.result == 'failure' || needs.test-e2e.result == 'failure' || needs.build.result == 'failure'
+        run: |
+          echo "❌ Pipeline failed. Please check the logs above."
+          exit 1
