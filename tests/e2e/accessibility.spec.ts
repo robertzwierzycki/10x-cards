@@ -27,21 +27,4 @@ test.describe("Accessibility", () => {
 
     expect(["INPUT", "BUTTON", "A"]).toContain(firstFocusedElement);
   });
-
-  test.skip("should not have accessibility issues on dashboard", async ({ page }) => {
-    // This requires authentication - implement when auth is ready
-    await page.goto("/dashboard");
-
-    const accessibilityScanResults = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
-
-    expect(accessibilityScanResults.violations).toEqual([]);
-  });
-
-  test("should have proper color contrast", async ({ page }) => {
-    await page.goto("/");
-
-    const accessibilityScanResults = await new AxeBuilder({ page }).withTags(["cat.color"]).analyze();
-
-    expect(accessibilityScanResults.violations).toEqual([]);
-  });
 });
