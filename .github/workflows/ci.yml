@@ -57,6 +57,7 @@ jobs:
     name: 🧪 Test & Build
     runs-on: ubuntu-latest
     needs: [lint, typecheck]
+    environment: test
 
     permissions:
       contents: read

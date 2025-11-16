@@ -5,8 +5,8 @@
  * Serves Swagger UI for interactive API documentation
  */
 
-// This page is static and doesn't need server-side rendering
-export const prerender = true;
+// This page needs server-side rendering to access request headers
+export const prerender = false;
 ---
 
 <!doctype html>
