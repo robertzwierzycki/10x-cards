@@ -17,7 +17,15 @@
       "Bash(xargs:*)",
       "Bash(docker exec:*)",
       "Bash(docker restart:*)",
-      "Bash(docker logs:*)"
+      "Bash(docker logs:*)",
+      "Bash(act:*)",
+      "Bash(mkdir:*)",
+      "Bash(node --version)",
+      "Bash(npm:*)",
+      "Bash(cat:*)",
+      "Bash(git config:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []
