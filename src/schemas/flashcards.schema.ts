@@ -19,8 +19,8 @@ export const flashcardContentSchema = z.object({
  * Used in GET requests with pagination
  */
 export const paginationSchema = z.object({
-  page: z.coerce.number().min(1, "Page must be at least 1").optional().default(1),
-  limit: z.coerce.number().min(1).max(200, "Limit cannot exceed 200").optional().default(50),
+  page: z.coerce.number().min(1, "Page must be at least 1").nullish().default(1),
+  limit: z.coerce.number().min(1).max(200, "Limit cannot exceed 200").nullish().default(50),
 });
 
 /**

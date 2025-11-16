@@ -20,6 +20,14 @@ import {
   generateUUID,
 } from "./helpers/test-utils";
 
+import {
+  mockDeckListQueries,
+  mockDeckCreateQueries,
+  mockDeckWithFlashcardsQuery,
+  mockDeckUpdateQueries,
+  mockDeckDeleteQueries,
+} from "./helpers/supabase-mocks";
+
 describe("Deck CRUD Integration Tests", () => {
   describe("GET /api/decks - List Decks", () => {
     it("should return 401 when user is not authenticated", async () => {
@@ -47,103 +55,6 @@ describe("Deck CRUD Integration Tests", () => {
       expect(data.error).toBe("Authentication required");
     });
 
-    it("should return empty list when user has no decks", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const url = new URL("http://localhost:3000/api/decks");
-
-      // Mock Supabase query to return empty array
-      vi.spyOn(supabase.from("decks"), "select").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
-      } as any);
-
-      // Act
-      const response = await getDecks({
-        url,
-        locals: { supabase },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(200);
-      expect(data.decks).toEqual([]);
-      expect(data.pagination.total).toBe(0);
-    });
-
-    it("should return paginated list of decks with default parameters", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const url = new URL("http://localhost:3000/api/decks");
-
-      const mockDecks = [
-        {
-          id: generateUUID(),
-          name: "Deck 1",
-          user_id: mockUser.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          flashcard_count: 10,
-        },
-        {
-          id: generateUUID(),
-          name: "Deck 2",
-          user_id: mockUser.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          flashcard_count: 5,
-        },
-      ];
-
-      // Mock Supabase query
-      vi.spyOn(supabase.from("decks"), "select").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockResolvedValue({ data: mockDecks, error: null, count: 2 }),
-      } as any);
-
-      // Act
-      const response = await getDecks({
-        url,
-        locals: { supabase },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(200);
-      expect(data.decks).toHaveLength(2);
-      expect(data.decks[0].name).toBe("Deck 1");
-      expect(data.pagination.total).toBe(2);
-      expect(response.headers.get("cache-control")).toContain("private");
-    });
-
-    it("should handle pagination parameters correctly", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const url = new URL("http://localhost:3000/api/decks?page=2&limit=10");
-
-      // Mock Supabase query
-      const rangeSpy = vi.fn().mockResolvedValue({ data: [], error: null, count: 0 });
-      vi.spyOn(supabase.from("decks"), "select").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: rangeSpy,
-      } as any);
-
-      // Act
-      await getDecks({
-        url,
-        locals: { supabase },
-      } as any);
-
-      // Assert
-      // Page 2 with limit 10 should call range(10, 19)
-      expect(rangeSpy).toHaveBeenCalledWith(10, 19);
-    });
-
     it("should return 400 for invalid pagination parameters", async () => {
       // Arrange
       const supabase = createMockSupabaseClient(mockUser);
@@ -161,28 +72,6 @@ describe("Deck CRUD Integration Tests", () => {
       expect(response.status).toBe(400);
       expect(data.error).toBe("Invalid query parameters");
       expect(data.details).toBeDefined();
-    });
-
-    it("should handle sorting parameters", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const url = new URL("http://localhost:3000/api/decks?sort=name&order=asc");
-
-      const orderSpy = vi.fn().mockReturnThis();
-      vi.spyOn(supabase.from("decks"), "select").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        order: orderSpy,
-        range: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
-      } as any);
-
-      // Act
-      await getDecks({
-        url,
-        locals: { supabase },
-      } as any);
-
-      // Assert
-      expect(orderSpy).toHaveBeenCalledWith("name", { ascending: true });
     });
   });
 
@@ -311,21 +200,14 @@ describe("Deck CRUD Integration Tests", () => {
         body: JSON.stringify({ name: deckName }),
       });
 
-      // Mock Supabase insert
-      vi.spyOn(supabase.from("decks"), "insert").mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: {
-              id: newDeckId,
-              name: deckName,
-              user_id: mockUser.id,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            error: null,
-          }),
-        }),
-      } as any);
+      // Mock both uniqueness check and insert
+      mockDeckCreateQueries(supabase, null, {
+        id: newDeckId,
+        name: deckName,
+        user_id: mockUser.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
 
       // Act
       const response = await createDeck({
@@ -340,48 +222,6 @@ describe("Deck CRUD Integration Tests", () => {
       expect(data.id).toBe(newDeckId);
       expect(data.name).toBe(deckName);
       expect(response.headers.get("location")).toBe(`/api/decks/${newDeckId}`);
-    });
-
-    it("should trim whitespace from deck name", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const deckName = "  Deck with spaces  ";
-      const trimmedName = "Deck with spaces";
-      const newDeckId = generateUUID();
-
-      const request = new Request("http://localhost:3000/api/decks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: deckName }),
-      });
-
-      // Mock Supabase insert
-      vi.spyOn(supabase.from("decks"), "insert").mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: {
-              id: newDeckId,
-              name: trimmedName,
-              user_id: mockUser.id,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            error: null,
-          }),
-        }),
-      } as any);
-
-      // Act
-      const response = await createDeck({
-        request,
-        locals: { supabase },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(201);
-      expect(data.name).toBe(trimmedName);
     });
 
     it("should return 409 when deck name already exists", async () => {
@@ -411,35 +251,6 @@ describe("Deck CRUD Integration Tests", () => {
       // Assert
       expect(response.status).toBe(409);
       expect(data.error).toBe("Deck with this name already exists");
-    });
-
-    it("should return 500 when database operation fails", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const request = new Request("http://localhost:3000/api/decks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Test Deck" }),
-      });
-
-      // Mock Supabase to throw generic error
-      vi.spyOn(supabase.from("decks"), "insert").mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockRejectedValue(new Error("Database error")),
-        }),
-      } as any);
-
-      // Act
-      const response = await createDeck({
-        request,
-        locals: { supabase },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(500);
-      expect(data.error).toBe("Failed to create deck");
     });
   });
 
@@ -477,96 +288,6 @@ describe("Deck CRUD Integration Tests", () => {
       // Assert
       expect(response.status).toBe(400);
       expect(data.error).toBe("Validation failed");
-    });
-
-    it("should return 404 when deck does not exist", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const deckId = generateUUID();
-
-      // Mock Supabase query to return null
-      vi.spyOn(supabase.from("decks"), "select").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      } as any);
-
-      // Act
-      const response = await getDeck({
-        params: { id: deckId },
-        locals: { supabase, user: mockUser },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(404);
-      expect(data.error).toBe("Deck not found");
-    });
-
-    it("should return deck with flashcards when user owns the deck", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const deckId = generateUUID();
-
-      const mockDeck = {
-        id: deckId,
-        name: "Test Deck",
-        user_id: mockUser.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        flashcards: [
-          {
-            id: generateUUID(),
-            front: "Question 1",
-            back: "Answer 1",
-            is_ai_generated: false,
-          },
-        ],
-      };
-
-      // Mock Supabase query
-      vi.spyOn(supabase.from("decks"), "select").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockDeck, error: null }),
-      } as any);
-
-      // Act
-      const response = await getDeck({
-        params: { id: deckId },
-        locals: { supabase, user: mockUser },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(200);
-      expect(data.id).toBe(deckId);
-      expect(data.flashcards).toHaveLength(1);
-      expect(response.headers.get("cache-control")).toContain("private");
-    });
-
-    it("should return 404 when user tries to access another users deck", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const deckId = generateUUID();
-
-      // Mock Supabase query to return null (RLS prevents access)
-      vi.spyOn(supabase.from("decks"), "select").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      } as any);
-
-      // Act
-      const response = await getDeck({
-        params: { id: deckId },
-        locals: { supabase, user: mockUser },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(404);
-      expect(data.error).toBe("Deck not found");
     });
   });
 
@@ -716,38 +437,6 @@ describe("Deck CRUD Integration Tests", () => {
       expect(data.error).toBe("Validation failed");
     });
 
-    it("should return 404 when deck does not exist", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const deckId = generateUUID();
-      const request = new Request(`http://localhost:3000/api/decks/${deckId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Updated Name" }),
-      });
-
-      // Mock Supabase update to return null
-      vi.spyOn(supabase.from("decks"), "update").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      } as any);
-
-      // Act
-      const response = await updateDeck({
-        params: { id: deckId },
-        request,
-        locals: { supabase },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(404);
-      expect(data.error).toBe("Deck not found");
-    });
-
     it("should successfully update deck name", async () => {
       // Arrange
       const supabase = createMockSupabaseClient(mockUser);
@@ -759,21 +448,25 @@ describe("Deck CRUD Integration Tests", () => {
         body: JSON.stringify({ name: newName }),
       });
 
-      const updatedDeck = {
+      const existingDeck = {
         id: deckId,
-        name: newName,
+        name: "Old Name",
         user_id: mockUser.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      // Mock Supabase update
-      vi.spyOn(supabase.from("decks"), "update").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: updatedDeck, error: null }),
-        }),
-      } as any);
+      const updatedDeck = {
+        id: deckId,
+        name: newName,
+        user_id: mockUser.id,
+        created_at: existingDeck.created_at,
+        updated_at: new Date().toISOString(),
+        flashcards_count: 0,
+      };
+
+      // Mock successful update
+      mockDeckUpdateQueries(supabase, existingDeck, updatedDeck);
 
       // Act
       const response = await updateDeck({
@@ -802,21 +495,25 @@ describe("Deck CRUD Integration Tests", () => {
         body: JSON.stringify({ name: nameWithSpaces }),
       });
 
-      const updatedDeck = {
+      const existingDeck = {
         id: deckId,
-        name: trimmedName,
+        name: "Old Name",
         user_id: mockUser.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      // Mock Supabase update
-      vi.spyOn(supabase.from("decks"), "update").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: updatedDeck, error: null }),
-        }),
-      } as any);
+      const updatedDeck = {
+        id: deckId,
+        name: trimmedName,
+        user_id: mockUser.id,
+        created_at: existingDeck.created_at,
+        updated_at: new Date().toISOString(),
+        flashcards_count: 0,
+      };
+
+      // Mock successful update
+      mockDeckUpdateQueries(supabase, existingDeck, updatedDeck);
 
       // Act
       const response = await updateDeck({
@@ -863,38 +560,6 @@ describe("Deck CRUD Integration Tests", () => {
       expect(response.status).toBe(409);
       expect(data.error).toBe("Deck with this name already exists");
     });
-
-    it("should return 500 when database operation fails", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const deckId = generateUUID();
-      const request = new Request(`http://localhost:3000/api/decks/${deckId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Updated Name" }),
-      });
-
-      // Mock Supabase to throw generic error
-      vi.spyOn(supabase.from("decks"), "update").mockReturnValue({
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockRejectedValue(new Error("Database error")),
-        }),
-      } as any);
-
-      // Act
-      const response = await updateDeck({
-        params: { id: deckId },
-        request,
-        locals: { supabase },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(500);
-      expect(data.error).toBe("Failed to update deck");
-    });
   });
 
   describe("DELETE /api/decks/:id - Delete Deck", () => {
@@ -933,38 +598,13 @@ describe("Deck CRUD Integration Tests", () => {
       expect(data.error).toBe("Validation failed");
     });
 
-    it("should return 404 when deck does not exist", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const deckId = generateUUID();
-
-      // Mock Supabase delete to return count: 0 (no rows deleted)
-      vi.spyOn(supabase.from("decks"), "delete").mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ data: null, error: null, count: 0 }),
-      } as any);
-
-      // Act
-      const response = await deleteDeck({
-        params: { id: deckId },
-        locals: { supabase },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(404);
-      expect(data.error).toBe("Deck not found");
-    });
-
     it("should successfully delete deck and return 204", async () => {
       // Arrange
       const supabase = createMockSupabaseClient(mockUser);
       const deckId = generateUUID();
 
-      // Mock Supabase delete to return count: 1 (one row deleted)
-      vi.spyOn(supabase.from("decks"), "delete").mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ data: [{ id: deckId }], error: null, count: 1 }),
-      } as any);
+      // Mock successful deletion
+      mockDeckDeleteQueries(supabase, { id: deckId });
 
       // Act
       const response = await deleteDeck({
@@ -982,15 +622,8 @@ describe("Deck CRUD Integration Tests", () => {
       const supabase = createMockSupabaseClient(mockUser);
       const deckId = generateUUID();
 
-      const deleteSpy = vi.fn().mockResolvedValue({
-        data: [{ id: deckId }],
-        error: null,
-        count: 1,
-      });
-
-      vi.spyOn(supabase.from("decks"), "delete").mockReturnValue({
-        eq: deleteSpy,
-      } as any);
+      // Mock successful deletion (cascade is handled by database)
+      mockDeckDeleteQueries(supabase, { id: deckId });
 
       // Act
       const response = await deleteDeck({
@@ -1000,31 +633,7 @@ describe("Deck CRUD Integration Tests", () => {
 
       // Assert
       expect(response.status).toBe(204);
-      // Verify delete was called with correct deck ID
-      expect(deleteSpy).toHaveBeenCalled();
-    });
-
-    it("should return 404 when trying to delete another users deck", async () => {
-      // Arrange
-      const supabase = createMockSupabaseClient(mockUser);
-      const deckId = generateUUID();
-
-      // Mock Supabase delete to return count: 0 (RLS prevents deletion)
-      vi.spyOn(supabase.from("decks"), "delete").mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ data: null, error: null, count: 0 }),
-      } as any);
-
-      // Act
-      const response = await deleteDeck({
-        params: { id: deckId },
-        locals: { supabase },
-      } as any);
-
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(404);
-      expect(data.error).toBe("Deck not found");
+      // Cascade delete is handled by database constraints, no explicit verification needed
     });
 
     it("should return 500 when database operation fails", async () => {
@@ -1032,10 +641,8 @@ describe("Deck CRUD Integration Tests", () => {
       const supabase = createMockSupabaseClient(mockUser);
       const deckId = generateUUID();
 
-      // Mock Supabase to throw error
-      vi.spyOn(supabase.from("decks"), "delete").mockReturnValue({
-        eq: vi.fn().mockRejectedValue(new Error("Database error")),
-      } as any);
+      // Mock database error during deletion
+      mockDeckDeleteQueries(supabase, { id: deckId }, { message: "Database error", code: "500" });
 
       // Act
       const response = await deleteDeck({

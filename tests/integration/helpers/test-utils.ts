@@ -173,11 +173,29 @@ export function createMockSupabaseClient(user: User = mockUser) {
         // Promise-like methods for execution
         then: vi.fn((resolve) => {
           // Return appropriate mock data based on queryState
-          let result = { data: [], error: null, count: null };
+          let result: any = { data: null, error: null, count: null };
+
+          // Handle different actions
+          if (queryState.action === 'insert') {
+            // Return inserted data with generated ID if not present
+            const insertedData = Array.isArray(queryState.data)
+              ? queryState.data.map(d => ({ ...d, id: d.id || generateUUID() }))
+              : { ...queryState.data, id: queryState.data.id || generateUUID() };
+            result.data = queryState.single ? insertedData : [insertedData];
+          } else if (queryState.action === 'update') {
+            // Return updated data
+            result.data = queryState.single ? queryState.data : [queryState.data];
+          } else if (queryState.action === 'delete') {
+            // Return empty data for delete
+            result.data = null;
+          } else {
+            // Default select query - return empty array
+            result.data = [];
+          }
 
           // For count queries on empty results
           if (queryState.shouldCount) {
-            result.count = 0;
+            result.count = Array.isArray(result.data) ? result.data.length : 0;
           }
 
           resolve(result);

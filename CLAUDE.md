@@ -19,9 +19,18 @@ npm run lint          # Run ESLint checks
 npm run lint:fix      # Auto-fix ESLint issues
 npm run format        # Format code with Prettier
 
-# Testing (when implemented)
-# Tests should be run with: npm test
-# Run specific test: npm test -- path/to/test.spec.ts
+# Testing
+npm test             # Run tests in watch mode
+npm run test:run     # Run tests once
+npm run test:ui      # Open Vitest UI
+npm run test:watch   # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+
+# E2E Testing
+npm run test:e2e     # Run Playwright E2E tests
+npm run test:e2e:ui  # Open Playwright test UI
+npm run test:e2e:debug # Debug Playwright tests
+npm run test:e2e:report # Show Playwright test report
 ```
 
 ## Architecture Overview
@@ -195,6 +204,101 @@ SUPABASE_KEY=your_supabase_anon_key
 OPENROUTER_API_KEY=your_openrouter_key  # For GPT-4o-mini access
 ```
 
+## Testing Strategy
+
+### Unit & Integration Testing (Vitest)
+
+**Configuration**: `vitest.config.ts`
+- Environment: jsdom for React component testing
+- Coverage threshold: 80% for lines, functions, branches, and statements
+- Test files: `*.{test,spec}.{ts,tsx}` in `src/` and `tests/unit/`, `tests/integration/`
+- Setup file: `src/test/setup.ts` (configures MSW, testing-library, and browser API mocks)
+
+**Key Testing Libraries**:
+- `@testing-library/react` - React component testing
+- `@testing-library/jest-dom` - Additional DOM matchers
+- `@testing-library/user-event` - User interaction simulation
+- `msw` (Mock Service Worker) - API mocking for tests
+- `happy-dom` / `jsdom` - DOM implementation for Node.js
+
+**Testing Patterns**:
+```typescript
+// Component testing example
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect } from 'vitest';
+
+describe('Component', () => {
+  it('should handle user interaction', async () => {
+    const user = userEvent.setup();
+    render(<Component />);
+
+    await user.click(screen.getByRole('button'));
+    expect(screen.getByText('Result')).toBeInTheDocument();
+  });
+});
+```
+
+### E2E Testing (Playwright)
+
+**Configuration**: `playwright.config.ts`
+- Test directory: `tests/e2e/`
+- Browser: Chromium/Desktop Chrome only
+- Base URL: http://localhost:3000
+- Features: Screenshots on failure, video retention on failure, trace on retry
+- Parallel execution enabled (except in CI)
+- Automatic dev server startup before tests
+
+**Best Practices**:
+- Use Page Object Model for maintainable tests
+- Leverage `@axe-core/playwright` for accessibility testing
+- Use locators for resilient element selection
+
+### MSW (Mock Service Worker)
+
+The project uses MSW for API mocking in tests. Server is configured in `src/test/mocks/server.ts` with handlers in `src/test/mocks/handlers/`.
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+**File**: `.github/workflows/ci.yml`
+
+**Trigger Events**:
+- Pull requests to `master` branch
+- Pushes to `master` and `develop` branches
+
+**Jobs Architecture** (Parallel → Sequential):
+
+1. **Parallel Jobs** (run simultaneously):
+   - **Lint Check** (`lint`): Runs ESLint validation
+   - **Type Check** (`typecheck`): TypeScript compilation check
+
+2. **Sequential Job** (after parallel jobs succeed):
+   - **Test & Build** (`test-and-build`):
+     - Runs unit tests with coverage
+     - Builds the project
+     - Uploads coverage reports
+     - Uploads build artifacts
+     - Posts coverage summary to PR comments
+
+**Environment Variables Required in CI**:
+```yaml
+SUPABASE_URL
+SUPABASE_KEY
+PUBLIC_SUPABASE_URL
+PUBLIC_SUPABASE_ANON_KEY
+OPENROUTER_API_KEY
+```
+
+**Node Version**: Managed via `.nvmrc` file (v22.14.0)
+
+**CI Features**:
+- Coverage reporting with lcov-reporter
+- Artifact retention (coverage: 30 days, build: 7 days)
+- PR comment with test results and coverage summary
+- Uses `npm ci` for deterministic dependency installation
+
 ## Code Quality Standards
 
 ### TypeScript Configuration
@@ -210,8 +314,21 @@ OPENROUTER_API_KEY=your_openrouter_key  # For GPT-4o-mini access
 - Prettier integration
 
 ### Git Hooks (Husky + lint-staged)
-- Auto-lint `.ts`, `.tsx`, `.astro` files on commit
-- Auto-format `.json`, `.css`, `.md` files on commit
+
+**Configuration**: `package.json` lint-staged section
+- **TypeScript/TSX/Astro files**: Auto-lint with ESLint on commit
+- **JSON/CSS/Markdown files**: Auto-format with Prettier on commit
+
+```json
+{
+  "lint-staged": {
+    "*.{ts,tsx,astro}": ["eslint --fix"],
+    "*.{json,css,md}": ["prettier --write"]
+  }
+}
+```
+
+This ensures code quality standards are maintained before each commit.
 
 ## Common Development Tasks
 
@@ -252,6 +369,37 @@ Access Supabase through middleware-injected client in `context.locals.supabase` 
 - Consider implementing Redis caching for AI responses
 - Monitor bundle size and implement lazy loading where appropriate
 
+## Deployment & Production
+
+### Build Configuration
+- **Output**: Server-side rendering (SSR) mode
+- **Adapter**: Node.js standalone mode
+- **Port**: 3000 (configurable via environment)
+- **Build Command**: `npm run build`
+- **Output Directory**: `./dist`
+
+### Production Requirements
+- Node.js 22.14.0 or higher
+- All environment variables must be set (see Environment Variables section)
+- SSL/TLS termination should be handled by reverse proxy (nginx, etc.)
+- Consider using PM2 or similar for process management
+
+### Health Checks & Monitoring
+- Implement `/api/health` endpoint for uptime monitoring
+- Monitor Supabase connection pool
+- Set up error tracking (e.g., Sentry)
+- Monitor AI API rate limits and usage
+
+### Deployment Checklist
+1. ✅ All tests passing (`npm run test:run`)
+2. ✅ Build successful (`npm run build`)
+3. ✅ Environment variables configured
+4. ✅ Database migrations applied
+5. ✅ Supabase RLS policies configured
+6. ✅ API rate limiting configured
+7. ✅ SSL/TLS configured
+8. ✅ Monitoring and logging set up
+
 ## Security Best Practices
 
 - Validate all user inputs with Zod
@@ -261,22 +409,75 @@ Access Supabase through middleware-injected client in `context.locals.supabase` 
 - Never expose sensitive keys in client-side code
 - ## Tech Stack
 
-- Astro 5
-- TypeScript 5
-- React 19
-- Tailwind 4
+### Core Framework & Languages
+- **Astro 5** - Static site generator with SSR capabilities
+- **TypeScript 5** - Type-safe JavaScript with strict mode
+- **React 19** - UI component library (latest version)
+- **Node.js 22.14.0** - Runtime environment (specified in `.nvmrc`)
+
+### Styling & UI
+- **Tailwind CSS v4** - Utility-first CSS framework (using Vite plugin)
+- **shadcn/ui** - Reusable component library
+- **Radix UI** - Unstyled, accessible component primitives
+- **class-variance-authority** - Variant management for components
+- **lucide-react** - Icon library
+
+### Data & Backend
+- **Supabase** - Backend-as-a-Service (Auth, Database, Storage)
+- **OpenRouter API** - LLM integration (GPT-4o-mini access)
+
+### State & Forms
+- **Zustand** - State management (v5)
+- **React Hook Form** - Form state management
+- **Zod** - Schema validation
+
+### Build & Development Tools
+- **Vite** - Build tool (integrated with Astro)
+- **ESLint 9** - Linting with flat config
+- **Prettier** - Code formatting
+- **Husky** - Git hooks
+- **lint-staged** - Pre-commit linting
+
+### Testing Tools
+- **Vitest** - Unit and integration testing
+- **Playwright** - E2E testing
+- **MSW** - API mocking
+- **Testing Library** - React component testing utilities
 
 ## Project Structure
 
 When introducing changes to the project, always follow the directory structure below:
 
-- `./src` - source code
-- `./src/layouts` - Astro layouts
-- `./src/pages` - Astro pages
+### Source Code
+- `./src` - Source code root
+- `./src/layouts` - Astro layouts for page templates
+- `./src/pages` - Astro pages (file-based routing)
 - `./src/pages/api` - API endpoints
-- `./src/components` - client-side components written in Astro (static) and React (dynamic)
-- `./src/assets` - static internal assets
-- `./public` - public assets
+- `./src/components` - Components (Astro for static, React for interactive)
+- `./src/components/ui` - shadcn/ui components
+- `./src/lib` - Utility functions and shared code
+- `./src/stores` - Zustand store definitions
+- `./src/types` - TypeScript type definitions
+- `./src/styles` - Global styles and CSS modules
+- `./src/assets` - Static internal assets
+
+### Testing
+- `./src/test` - Test utilities and setup
+- `./src/test/setup.ts` - Vitest configuration
+- `./src/test/mocks` - MSW mock handlers
+- `./tests/unit` - Unit tests
+- `./tests/integration` - Integration tests
+- `./tests/e2e` - End-to-end Playwright tests
+
+### Configuration
+- `./` - Root config files (astro.config.mjs, vitest.config.ts, etc.)
+- `./.github/workflows` - GitHub Actions CI/CD pipelines
+- `./public` - Public static assets
+
+### Build Output
+- `./dist` - Production build output
+- `./coverage` - Test coverage reports
+- `./.astro` - Astro build cache (gitignored)
 
 When modifying the directory structure, always update this section.
 

@@ -30,10 +30,10 @@ export type GetDeckParams = z.infer<typeof getDeckParamsSchema>;
  * Used in: GET /api/decks
  */
 export const deckListQuerySchema = z.object({
-  page: z.coerce.number().min(1).optional().default(1),
-  limit: z.coerce.number().min(1).max(100).optional().default(20),
-  sort: z.enum(["name", "created_at", "updated_at"]).optional().default("updated_at"),
-  order: z.enum(["asc", "desc"]).optional().default("desc"),
+  page: z.coerce.number().min(1).nullish().default(1),
+  limit: z.coerce.number().min(1).max(100).nullish().default(20),
+  sort: z.enum(["name", "created_at", "updated_at"]).nullish().default("updated_at"),
+  order: z.enum(["asc", "desc"]).nullish().default("desc"),
 });
 
 /**
