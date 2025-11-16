@@ -43,7 +43,7 @@ export function createMockQueryBuilder(defaultData: any = null, defaultError: an
 
   // Make chainable
   Object.keys(queryBuilder).forEach((key) => {
-    if (typeof queryBuilder[key].mockReturnThis === 'function') {
+    if (typeof queryBuilder[key].mockReturnThis === "function") {
       queryBuilder[key].mockReturnThis();
     }
   });
@@ -66,11 +66,11 @@ export function mockDeckListQueries(supabase: any, count: number, data: any[]) {
           if (options?.count === "exact" && options?.head === true) {
             return {
               eq: vi.fn().mockReturnThis(),
-              then: vi.fn((resolve) => resolve({ count, error: null, data: null }))
+              then: vi.fn((resolve) => resolve({ count, error: null, data: null })),
             };
           }
           return createMockQueryBuilder(data, null);
-        })
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -84,8 +84,8 @@ export function mockDeckListQueries(supabase: any, count: number, data: any[]) {
           eq: vi.fn().mockReturnThis(),
           order: vi.fn().mockReturnThis(),
           range: vi.fn().mockReturnThis(),
-          then: vi.fn((resolve) => resolve({ data, error: null, count: null }))
-        })
+          then: vi.fn((resolve) => resolve({ data, error: null, count: null })),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -107,8 +107,8 @@ export function mockDeckCreateQueries(supabase: any, existingDeck: any, newDeck:
       return {
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnThis(),
-          maybeSingle: vi.fn().mockResolvedValue({ data: existingDeck, error: null })
-        })
+          maybeSingle: vi.fn().mockResolvedValue({ data: existingDeck, error: null }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -120,9 +120,9 @@ export function mockDeckCreateQueries(supabase: any, existingDeck: any, newDeck:
       return {
         insert: vi.fn().mockReturnValue({
           select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: newDeck, error: null })
-          })
-        })
+            single: vi.fn().mockResolvedValue({ data: newDeck, error: null }),
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -146,9 +146,9 @@ export function mockDeckWithFlashcardsQuery(supabase: any, deck: any, flashcards
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({
             data: deck ? { ...deck, flashcards } : null,
-            error: deck ? null : { message: "Not found", code: "404" }
-          })
-        })
+            error: deck ? null : { message: "Not found", code: "404" },
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -172,9 +172,9 @@ export function mockDeckUpdateQueries(supabase: any, existingDeck: any, updatedD
           eq: vi.fn().mockReturnThis(),
           maybeSingle: vi.fn().mockResolvedValue({
             data: existingDeck,
-            error: existingDeck ? null : { message: "Not found", code: "404" }
-          })
-        })
+            error: existingDeck ? null : { message: "Not found", code: "404" },
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -187,8 +187,8 @@ export function mockDeckUpdateQueries(supabase: any, existingDeck: any, updatedD
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnThis(),
           neq: vi.fn().mockReturnThis(),
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null })
-        })
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -203,10 +203,10 @@ export function mockDeckUpdateQueries(supabase: any, existingDeck: any, updatedD
           select: vi.fn().mockReturnValue({
             single: vi.fn().mockResolvedValue({
               data: updatedDeck,
-              error: null
-            })
-          })
-        })
+              error: null,
+            }),
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -220,11 +220,11 @@ export function mockDeckUpdateQueries(supabase: any, existingDeck: any, updatedD
           if (options?.count === "exact" && options?.head === true) {
             return {
               eq: vi.fn().mockReturnThis(),
-              then: vi.fn((resolve) => resolve({ count: 0, error: null, data: null }))
+              then: vi.fn((resolve) => resolve({ count: 0, error: null, data: null })),
             };
           }
           return createMockQueryBuilder();
-        })
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -248,9 +248,9 @@ export function mockDeckDeleteQueries(supabase: any, existingDeck: any, deleteEr
           eq: vi.fn().mockReturnThis(), // First .eq("id", deckId)
           maybeSingle: vi.fn().mockResolvedValue({
             data: existingDeck,
-            error: existingDeck ? null : { message: "Not found", code: "404" }
-          })
-        })
+            error: existingDeck ? null : { message: "Not found", code: "404" },
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -267,11 +267,13 @@ export function mockDeckDeleteQueries(supabase: any, existingDeck: any, deleteEr
       return {
         delete: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnThis(), // First .eq("id", deckId) - chains to second
-          then: vi.fn((resolve) => resolve({
-            data: null,
-            error: deleteError
-          }))
-        })
+          then: vi.fn((resolve) =>
+            resolve({
+              data: null,
+              error: deleteError,
+            })
+          ),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -289,7 +291,14 @@ export function mockDeckDeleteQueries(supabase: any, existingDeck: any, deleteEr
  * @param deckExists - Whether the deck exists (for ownership check)
  * @param userOwns - Whether the user owns the deck (for 403 case)
  */
-export function mockFlashcardListQueries(supabase: any, deckId: string, count: number, data: any[], deckExists: boolean = true, userOwns: boolean = true) {
+export function mockFlashcardListQueries(
+  supabase: any,
+  deckId: string,
+  count: number,
+  data: any[],
+  deckExists = true,
+  userOwns = true
+) {
   // First call to from("decks") - ownership check via verifyDeckOwnership
   supabase.from.mockImplementationOnce((table: string) => {
     if (table === "decks") {
@@ -298,9 +307,9 @@ export function mockFlashcardListQueries(supabase: any, deckId: string, count: n
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({
             data: deckExists && userOwns ? { id: deckId } : null,
-            error: deckExists && userOwns ? null : { message: "Not found", code: "404" }
-          })
-        })
+            error: deckExists && userOwns ? null : { message: "Not found", code: "404" },
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -315,9 +324,9 @@ export function mockFlashcardListQueries(supabase: any, deckId: string, count: n
             eq: vi.fn().mockReturnThis(),
             single: vi.fn().mockResolvedValue({
               data: deckExists ? { id: deckId } : null,
-              error: deckExists ? null : { message: "Not found", code: "404" }
-            })
-          })
+              error: deckExists ? null : { message: "Not found", code: "404" },
+            }),
+          }),
         };
       }
       return createMockQueryBuilder();
@@ -333,11 +342,11 @@ export function mockFlashcardListQueries(supabase: any, deckId: string, count: n
           if (options?.count === "exact" && options?.head === true) {
             return {
               eq: vi.fn().mockReturnThis(),
-              then: vi.fn((resolve) => resolve({ count, error: null, data: null }))
+              then: vi.fn((resolve) => resolve({ count, error: null, data: null })),
             };
           }
           return createMockQueryBuilder();
-        })
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -351,8 +360,8 @@ export function mockFlashcardListQueries(supabase: any, deckId: string, count: n
           eq: vi.fn().mockReturnThis(),
           order: vi.fn().mockReturnThis(),
           range: vi.fn().mockReturnThis(),
-          then: vi.fn((resolve) => resolve({ data, error: null, count: null }))
-        })
+          then: vi.fn((resolve) => resolve({ data, error: null, count: null })),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -368,7 +377,7 @@ export function mockFlashcardListQueries(supabase: any, deckId: string, count: n
  * @param newFlashcard - New flashcard data to return
  * @param userOwns - Whether the user owns the deck (for 403 case)
  */
-export function mockFlashcardCreateQueries(supabase: any, deckExists: boolean, newFlashcard: any, userOwns: boolean = true) {
+export function mockFlashcardCreateQueries(supabase: any, deckExists: boolean, newFlashcard: any, userOwns = true) {
   // First call to from("decks") - ownership check via verifyDeckOwnership
   supabase.from.mockImplementationOnce((table: string) => {
     if (table === "decks") {
@@ -377,9 +386,9 @@ export function mockFlashcardCreateQueries(supabase: any, deckExists: boolean, n
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({
             data: deckExists && userOwns ? { id: newFlashcard?.deck_id || "deck-id" } : null,
-            error: deckExists && userOwns ? null : { message: "Not found", code: "404" }
-          })
-        })
+            error: deckExists && userOwns ? null : { message: "Not found", code: "404" },
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -394,9 +403,9 @@ export function mockFlashcardCreateQueries(supabase: any, deckExists: boolean, n
             eq: vi.fn().mockReturnThis(),
             single: vi.fn().mockResolvedValue({
               data: deckExists ? { id: newFlashcard?.deck_id || "deck-id" } : null,
-              error: deckExists ? null : { message: "Not found", code: "404" }
-            })
-          })
+              error: deckExists ? null : { message: "Not found", code: "404" },
+            }),
+          }),
         };
       }
       return createMockQueryBuilder();
@@ -412,10 +421,10 @@ export function mockFlashcardCreateQueries(supabase: any, deckExists: boolean, n
           select: vi.fn().mockReturnValue({
             single: vi.fn().mockResolvedValue({
               data: newFlashcard,
-              error: null
-            })
-          })
-        })
+              error: null,
+            }),
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -445,9 +454,9 @@ export function mockFlashcardUpdateQueries(
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({
             data: flashcardExists && userOwnsFlashcard ? { id: updatedFlashcard?.id || "flashcard-id" } : null,
-            error: flashcardExists && userOwnsFlashcard ? null : { message: "Not found", code: "404" }
-          })
-        })
+            error: flashcardExists && userOwnsFlashcard ? null : { message: "Not found", code: "404" },
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -462,9 +471,9 @@ export function mockFlashcardUpdateQueries(
             eq: vi.fn().mockReturnThis(),
             single: vi.fn().mockResolvedValue({
               data: flashcardExists ? { id: updatedFlashcard?.id || "flashcard-id" } : null,
-              error: flashcardExists ? null : { message: "Not found", code: "404" }
-            })
-          })
+              error: flashcardExists ? null : { message: "Not found", code: "404" },
+            }),
+          }),
         };
       }
       return createMockQueryBuilder();
@@ -481,11 +490,11 @@ export function mockFlashcardUpdateQueries(
             select: vi.fn().mockReturnValue({
               single: vi.fn().mockResolvedValue({
                 data: updatedFlashcard,
-                error: null
-              })
-            })
-          })
-        })
+                error: null,
+              }),
+            }),
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -509,9 +518,9 @@ export function mockFlashcardDeleteQueries(supabase: any, flashcardExists: boole
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({
             data: flashcardExists && userOwnsFlashcard ? { id: "flashcard-id" } : null,
-            error: flashcardExists && userOwnsFlashcard ? null : { message: "Not found", code: "404" }
-          })
-        })
+            error: flashcardExists && userOwnsFlashcard ? null : { message: "Not found", code: "404" },
+          }),
+        }),
       };
     }
     return createMockQueryBuilder();
@@ -526,9 +535,9 @@ export function mockFlashcardDeleteQueries(supabase: any, flashcardExists: boole
             eq: vi.fn().mockReturnThis(),
             single: vi.fn().mockResolvedValue({
               data: flashcardExists ? { id: "flashcard-id" } : null,
-              error: flashcardExists ? null : { message: "Not found", code: "404" }
-            })
-          })
+              error: flashcardExists ? null : { message: "Not found", code: "404" },
+            }),
+          }),
         };
       }
       return createMockQueryBuilder();
@@ -542,11 +551,13 @@ export function mockFlashcardDeleteQueries(supabase: any, flashcardExists: boole
       return {
         delete: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnThis(),
-          then: vi.fn((resolve) => resolve({
-            data: null,
-            error: null
-          }))
-        })
+          then: vi.fn((resolve) =>
+            resolve({
+              data: null,
+              error: null,
+            })
+          ),
+        }),
       };
     }
     return createMockQueryBuilder();

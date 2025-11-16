@@ -86,8 +86,8 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     // 6. Get flashcards with pagination
     const result = await flashcardsService.getFlashcardsByDeckId(
       validated.params.deckId,
-      validated.query.page,
-      validated.query.limit
+      validated.query.page ?? 1,
+      validated.query.limit ?? 50
     );
 
     // 7. Return successful response

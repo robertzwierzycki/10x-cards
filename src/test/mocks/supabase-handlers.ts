@@ -25,7 +25,7 @@ export const testDataStore = {
     this.counters.deck = 1;
     this.counters.flashcard = 1;
     this.counters.studyRecord = 1;
-  }
+  },
 };
 
 // Helper to parse Supabase query parameters
@@ -55,7 +55,7 @@ function parseSupabaseQuery(url: URL) {
 
 // Helper to filter data based on query parameters
 function filterData(data: any[], params: Record<string, any>) {
-  return data.filter(item => {
+  return data.filter((item) => {
     for (const [key, condition] of Object.entries(params)) {
       if (typeof condition === "object" && condition.op) {
         const itemValue = item[key];
@@ -105,11 +105,9 @@ export const supabaseHandlers = [
 
     // Handle select with joins (e.g., flashcards)
     if (select && select.includes("flashcards")) {
-      decks = decks.map(deck => ({
+      decks = decks.map((deck) => ({
         ...deck,
-        flashcards: Array.from(testDataStore.flashcards.values()).filter(
-          fc => fc.deck_id === deck.id
-        ),
+        flashcards: Array.from(testDataStore.flashcards.values()).filter((fc) => fc.deck_id === deck.id),
       }));
     }
 
@@ -133,7 +131,7 @@ export const supabaseHandlers = [
 
   // POST /rest/v1/decks - create deck
   http.post(`${SUPABASE_URL}/rest/v1/decks`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = (await request.json()) as any;
     const newDeck = {
       id: `deck-${testDataStore.counters.deck++}`,
       ...body,
@@ -155,14 +153,11 @@ export const supabaseHandlers = [
   http.patch(`${SUPABASE_URL}/rest/v1/decks`, async ({ request }) => {
     const url = new URL(request.url);
     const params = parseSupabaseQuery(url);
-    const body = await request.json() as any;
+    const body = (await request.json()) as any;
 
-    const decksToUpdate = filterData(
-      Array.from(testDataStore.decks.values()),
-      params
-    );
+    const decksToUpdate = filterData(Array.from(testDataStore.decks.values()), params);
 
-    const updatedDecks = decksToUpdate.map(deck => {
+    const updatedDecks = decksToUpdate.map((deck) => {
       const updated = {
         ...deck,
         ...body,
@@ -185,12 +180,9 @@ export const supabaseHandlers = [
     const url = new URL(request.url);
     const params = parseSupabaseQuery(url);
 
-    const decksToDelete = filterData(
-      Array.from(testDataStore.decks.values()),
-      params
-    );
+    const decksToDelete = filterData(Array.from(testDataStore.decks.values()), params);
 
-    decksToDelete.forEach(deck => {
+    decksToDelete.forEach((deck) => {
       testDataStore.decks.delete(deck.id);
       // Cascade delete flashcards
       Array.from(testDataStore.flashcards.entries()).forEach(([id, flashcard]) => {
@@ -235,7 +227,7 @@ export const supabaseHandlers = [
 
   // POST /rest/v1/flashcards - create flashcard
   http.post(`${SUPABASE_URL}/rest/v1/flashcards`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = (await request.json()) as any;
     const newFlashcard = {
       id: `flashcard-${testDataStore.counters.flashcard++}`,
       ...body,
@@ -257,14 +249,11 @@ export const supabaseHandlers = [
   http.patch(`${SUPABASE_URL}/rest/v1/flashcards`, async ({ request }) => {
     const url = new URL(request.url);
     const params = parseSupabaseQuery(url);
-    const body = await request.json() as any;
+    const body = (await request.json()) as any;
 
-    const flashcardsToUpdate = filterData(
-      Array.from(testDataStore.flashcards.values()),
-      params
-    );
+    const flashcardsToUpdate = filterData(Array.from(testDataStore.flashcards.values()), params);
 
-    const updatedFlashcards = flashcardsToUpdate.map(flashcard => {
+    const updatedFlashcards = flashcardsToUpdate.map((flashcard) => {
       const updated = {
         ...flashcard,
         ...body,
@@ -287,12 +276,9 @@ export const supabaseHandlers = [
     const url = new URL(request.url);
     const params = parseSupabaseQuery(url);
 
-    const flashcardsToDelete = filterData(
-      Array.from(testDataStore.flashcards.values()),
-      params
-    );
+    const flashcardsToDelete = filterData(Array.from(testDataStore.flashcards.values()), params);
 
-    flashcardsToDelete.forEach(flashcard => {
+    flashcardsToDelete.forEach((flashcard) => {
       testDataStore.flashcards.delete(flashcard.id);
       // Cascade delete study records
       Array.from(testDataStore.studyRecords.entries()).forEach(([id, record]) => {
@@ -322,7 +308,7 @@ export const supabaseHandlers = [
 
   // POST /rest/v1/study_records - create study record
   http.post(`${SUPABASE_URL}/rest/v1/study_records`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = (await request.json()) as any;
     const newRecord = {
       id: `record-${testDataStore.counters.studyRecord++}`,
       ...body,

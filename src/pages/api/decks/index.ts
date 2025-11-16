@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { DeckService } from "@/services/deck.service";
 import { deckListQuerySchema, createDeckSchema } from "@/schemas/deck.schema";
-import type { ErrorResponseDTO } from "@/types";
+import type { ErrorResponseDTO, DeckListQueryParams } from "@/types";
 
 export const prerender = false;
 
@@ -78,7 +78,13 @@ export const GET: APIRoute = async ({ url, locals }) => {
 
     // 3. Retrieve decks using DeckService
     const deckService = new DeckService(supabase);
-    const result = await deckService.getDecks(user.id, validatedParams);
+    const deckParams: DeckListQueryParams = {
+      page: validatedParams.page ?? 1,
+      limit: validatedParams.limit ?? 20,
+      sort: validatedParams.sort ?? "updated_at",
+      order: validatedParams.order ?? "desc",
+    };
+    const result = await deckService.getDecks(user.id, deckParams);
 
     // 4. Return success response
     return new Response(JSON.stringify(result), {

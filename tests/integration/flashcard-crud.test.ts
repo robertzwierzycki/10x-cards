@@ -198,9 +198,9 @@ describe("Flashcard CRUD Integration Tests", () => {
               eq: vi.fn().mockReturnThis(),
               single: vi.fn().mockResolvedValue({
                 data: { id: deckId },
-                error: null
-              })
-            })
+                error: null,
+              }),
+            }),
           };
         }
         return {};
@@ -214,11 +214,11 @@ describe("Flashcard CRUD Integration Tests", () => {
               if (options?.count === "exact" && options?.head === true) {
                 return {
                   eq: vi.fn().mockReturnThis(),
-                  then: vi.fn((resolve) => resolve({ count: 0, error: null, data: null }))
+                  then: vi.fn((resolve) => resolve({ count: 0, error: null, data: null })),
                 };
               }
               return {};
-            })
+            }),
           };
         }
         return {};
@@ -232,8 +232,8 @@ describe("Flashcard CRUD Integration Tests", () => {
               eq: vi.fn().mockReturnThis(),
               order: vi.fn().mockReturnThis(),
               range: rangeSpy,
-              then: vi.fn((resolve) => resolve({ data: [], error: null, count: null }))
-            })
+              then: vi.fn((resolve) => resolve({ data: [], error: null, count: null })),
+            }),
           };
         }
         return {};
@@ -612,7 +612,6 @@ describe("Flashcard CRUD Integration Tests", () => {
       // Assert
       expect(data.is_ai_generated).toBe(false);
     });
-
   });
 
   describe("PUT /api/flashcards/:id - Update Flashcard", () => {
@@ -938,7 +937,6 @@ describe("Flashcard CRUD Integration Tests", () => {
       expect(data.front).toBe("Updated Question");
       expect(data.back).toBe("Updated Answer");
     });
-
   });
 
   describe("DELETE /api/flashcards/:id - Delete Flashcard", () => {
@@ -1071,14 +1069,14 @@ describe("Flashcard CRUD Integration Tests", () => {
             data: { id: flashcardId, deck_id: deckId },
             error: null,
           }),
-        })
+        }),
       }));
 
       // Mock delete to throw error
       supabase.from.mockImplementationOnce(() => ({
         delete: vi.fn().mockReturnValue({
           eq: vi.fn().mockRejectedValue(new Error("Database error")),
-        })
+        }),
       }));
 
       // Act

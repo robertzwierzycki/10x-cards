@@ -56,7 +56,7 @@ export function createMockSupabaseClient(user: User = mockUser) {
     },
     from: vi.fn((table: string) => {
       // Store query state for building response
-      let queryState: any = {
+      const queryState: any = {
         table,
         filters: [],
         ordering: null,
@@ -173,19 +173,19 @@ export function createMockSupabaseClient(user: User = mockUser) {
         // Promise-like methods for execution
         then: vi.fn((resolve) => {
           // Return appropriate mock data based on queryState
-          let result: any = { data: null, error: null, count: null };
+          const result: any = { data: null, error: null, count: null };
 
           // Handle different actions
-          if (queryState.action === 'insert') {
+          if (queryState.action === "insert") {
             // Return inserted data with generated ID if not present
             const insertedData = Array.isArray(queryState.data)
-              ? queryState.data.map(d => ({ ...d, id: d.id || generateUUID() }))
+              ? queryState.data.map((d: any) => ({ ...d, id: d.id || generateUUID() }))
               : { ...queryState.data, id: queryState.data.id || generateUUID() };
             result.data = queryState.single ? insertedData : [insertedData];
-          } else if (queryState.action === 'update') {
+          } else if (queryState.action === "update") {
             // Return updated data
             result.data = queryState.single ? queryState.data : [queryState.data];
-          } else if (queryState.action === 'delete') {
+          } else if (queryState.action === "delete") {
             // Return empty data for delete
             result.data = null;
           } else {
@@ -252,15 +252,17 @@ export function createUnauthenticatedSupabaseClient() {
         maybeSingle: vi.fn().mockReturnThis(),
         count: vi.fn().mockReturnThis(),
         // Final execution methods that return auth errors
-        then: vi.fn((resolve) => resolve({
-          data: null,
-          error: { message: "Not authenticated", code: "401" }
-        })),
+        then: vi.fn((resolve) =>
+          resolve({
+            data: null,
+            error: { message: "Not authenticated", code: "401" },
+          })
+        ),
       };
 
       // Make it return itself for chaining
-      Object.keys(queryBuilder).forEach(key => {
-        if (key !== 'then') {
+      Object.keys(queryBuilder).forEach((key) => {
+        if (key !== "then") {
           queryBuilder[key].mockReturnValue(queryBuilder);
         }
       });
